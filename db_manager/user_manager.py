@@ -31,10 +31,23 @@ class UserManager:
 
     def add_user(self, user_data):
         try:
+            # Chuyển đổi từ dictionary thành tuple
+            data_tuple = (
+                user_data.get("UserID"),
+                user_data.get("Username"),
+                user_data.get("Password"),
+                user_data.get("Gender"),
+                user_data.get("Email"),
+                user_data.get("DateOfBirth"),
+                user_data.get("PhoneNumber"),
+                user_data.get("Balance"),
+                user_data.get("UserRole"),
+            )
+
             insert_query = sql.SQL(
                 'INSERT INTO "user" (UserID, Username, Password, Gender, Email, DateOfBirth, PhoneNumber, Balance, UserRole) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
             )
-            self.cursor.execute(insert_query, user_data)
+            self.cursor.execute(insert_query, data_tuple)
             self.conn.commit()
             return True
         except psycopg2.Error as e:
@@ -59,10 +72,25 @@ class UserManager:
 
     def update_user(self, user_id, new_data):
         try:
-            update_query = sql.SQL(
-                'UPDATE "user" SET Username = %s, Password = %s, Gender = %s, Email = %s, DateOfBirth = %s, PhoneNumber = %s, Balance = %s, UserRole = %s WHERE UserID = %s'
+            # Tạo danh sách các phần của câu truy vấn SQL
+            set_statements = []
+            update_values = []
+
+            # Xử lý từng cặp key-value trong new_data
+            for key, value in new_data.items():
+                set_statements.append(f"{key} = %s")
+                update_values.append(value)
+
+            # Thêm giá trị UserID vào danh sách update_values
+            update_values.append(user_id)
+
+            # Xây dựng câu truy vấn SQL
+            update_query = (
+                f'UPDATE "user" SET {", ".join(set_statements)} WHERE UserID = %s'
             )
-            self.cursor.execute(update_query, (*new_data, user_id))
+
+            # Thực hiện câu truy vấn cập nhật
+            self.cursor.execute(update_query, tuple(update_values))
             self.conn.commit()
             return True
         except psycopg2.Error as e:
