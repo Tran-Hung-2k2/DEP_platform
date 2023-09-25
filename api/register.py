@@ -1,25 +1,30 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 from typing import List
 import jwt
+import sys
+import os
 from jwt import PyJWTError
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from db_manager import db_manager 
+
 
 # Khởi tạo ứng dụng FastAPI
 app = FastAPI()
-
-# Dữ liệu mẫu cho Entity Description (thường được lưu trữ trong cơ sở dữ liệu)
-entity_db = {}
-
-
-# Mô hình Pydantic cho Entity Description
-class EntityDescription(BaseModel):
-    Token: str
-    UserID: str
-    Service: str
+register_manager = db_manager.DatabaseManage()
+register_manager.connect_to_database()
 
 
-# Secret key để mã hóa và giải mã token (bạn cần giữ nó bí mật và an toàn)
-SECRET_KEY = "tranhung"
+
+# Mô hình Pydantic cho Register
+class Register(BaseModel):
+    Token: str = Field(max_length=255)
+    UserID: str = Field(max_length=10)
+    Service: str = Field(max_length=255)
+
+
+# Secret key để mã hóa và giải mã token
+SECRET_KEY = "tranhungchubedan"
 
 
 # Hàm tạo token
@@ -37,9 +42,9 @@ def decode_token(token: str):
         return None
 
 
-# API endpoint để tạo Entity Description và tạo token cho người dùng
-@app.post("/entities/", response_model=EntityDescription)
-def create_entity(entity: EntityDescription):
+# API endpoint để tạo Register và tạo token cho người dùng
+@app.post("/register", response_model=Register)
+def create_entity(entity: Register):
     if entity.UserID in entity_db:
         raise HTTPException(
             status_code=400,
@@ -53,34 +58,34 @@ def create_entity(entity: EntityDescription):
     return entity
 
 
-# API endpoint để lấy danh sách Entity Descriptions
-@app.get("/entities/", response_model=List[EntityDescription])
+# API endpoint để lấy danh sách Registers
+@app.get("/entities/", response_model=List[Register])
 def get_entities():
     return list(entity_db.values())
 
 
-# API endpoint để lấy thông tin Entity Description dựa trên UserID
-@app.get("/entities/{UserID}", response_model=EntityDescription)
+# API endpoint để lấy thông tin Register dựa trên UserID
+@app.get("/entities/{UserID}", response_model=Register)
 def get_entity(UserID: str):
     entity = entity_db.get(UserID)
     if entity is None:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
+        raise HTTPException(status_code=404, detail="Register not found")
     return entity
 
 
-# API endpoint để cập nhật thông tin Entity Description dựa trên UserID
-@app.put("/entities/{UserID}", response_model=EntityDescription)
-def update_entity(UserID: str, updated_entity: EntityDescription):
+# API endpoint để cập nhật thông tin Register dựa trên UserID
+@app.put("/entities/{UserID}", response_model=Register)
+def update_entity(UserID: str, updated_entity: Register):
     if UserID not in entity_db:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
+        raise HTTPException(status_code=404, detail="Register not found")
     entity_db[UserID] = updated_entity
     return updated_entity
 
 
-# API endpoint để xóa Entity Description dựa trên UserID
+# API endpoint để xóa Register dựa trên UserID
 @app.delete("/entities/{UserID}")
 def delete_entity(UserID: str):
     if UserID not in entity_db:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
+        raise HTTPException(status_code=404, detail="Register not found")
     del entity_db[UserID]
-    return {"message": "Entity Description deleted"}
+    return {"message": "Register deleted"}

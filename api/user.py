@@ -1,43 +1,47 @@
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel,Field
 from typing import List, Optional
 from passlib.context import CryptContext
+import uvicorn
+from datetime import date
+import sys
+import os
+import string
+import time
+import random
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from db_manager import db_manager 
 
 # Khởi tạo ứng dụng FastAPI
 app = FastAPI()
-
-# Dữ liệu mẫu cho Entity Description (thường được lưu trữ trong cơ sở dữ liệu)
-entity_db = {}
-user_db = {}
-
-
-# Mô hình Pydantic cho Entity Description
-class EntityDescription(BaseModel):
-    UserID: str
-    Username: str
-    Password: str
-    Gender: str
-    Email: str
-    DateOfBirth: str
-    PhoneNumber: str
-    Balance: float
-    UserRole: str
-
-
-# Mô hình Pydantic cho tạo người dùng (signup)
-class UserSignup(BaseModel):
-    UserID: str
-    Username: str
-    Password: str
-    Email: str
-    UserRole: str
+user_manager = db_manager.DatabaseManage()
+user_manager.connect_to_database()
 
 
 # Mô hình Pydantic cho đăng nhập (login)
 class UserLogin(BaseModel):
-    UserID: str
-    Password: str
+    Username: str= Field(max_length=255)
+    Password: str= Field(max_length=255)
+
+
+# Mô hình Pydantic cho tạo người dùng (signup)
+class UserSignup(UserLogin):
+    Username: str= Field(max_length=255)
+    Password: str= Field(max_length=255)
+    Email: str= Field(max_length=255)
+    Gender: str
+    Email: str= Field(max_length=255)
+    DateOfBirth: date
+    PhoneNumber: str= Field(max_length=20)
+    
+
+# Mô hình Pydantic cho User
+class User(UserSignup):
+    UserID: str= Field(max_length=10)
+    Balance: float
+    UserRole: str= Field(max_length=255)
 
 
 # Cơ chế mã hóa mật khẩu
@@ -54,87 +58,95 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-# API endpoint để tạo Entity Description
-@app.post("/entities/", response_model=EntityDescription)
-def create_entity(entity: EntityDescription):
-    entity_db[entity.UserID] = entity
+# Hàm để tạo user_id
+def generate_user_id(length=10):
+    characters = string.ascii_letters + string.digits
+    seed = int(time.time() * 1000)
+    random.seed(seed)
+    user_id = ''.join(random.choice(characters) for _ in range(length))
+    return user_id
+
+
+@app.get("/")
+def admin_page():
+    return {"message": "Hello World"}
+
+# API endpoint để tạo User
+@app.post("/create", response_model=User)
+def create_entity(entity: User):
+    user_manager.add_user(entity.dict())
     return entity
 
 
-# API endpoint để lấy danh sách Entity Descriptions
-@app.get("/entities/", response_model=List[EntityDescription])
-def get_entities():
-    return list(entity_db.values())
-
-
-# API endpoint để lấy thông tin Entity Description dựa trên UserID
-@app.get("/entities/{UserID}", response_model=EntityDescription)
-def get_entity(UserID: str):
-    entity = entity_db.get(UserID)
+# API endpoint để lấy thông tin User dựa trên Username
+@app.get("/get/{Username}", response_model=User)
+def get_entity(Username: str):
+    entity = user_manager.get_user(Username)
     if entity is None:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
+        raise HTTPException(status_code=404, detail="User not found")
     return entity
 
 
-# API endpoint để cập nhật thông tin Entity Description dựa trên UserID
-@app.put("/entities/{UserID}", response_model=EntityDescription)
-def update_entity(UserID: str, updated_entity: EntityDescription):
-    if UserID not in entity_db:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
-    entity_db[UserID] = updated_entity
-    return updated_entity
+# API endpoint để cập nhật thông tin User dựa trên Username
+@app.put("/put/{Username}", response_model=User)
+def update_entity(Username: str, updated_entity: User):
+    if user_manager.update_user(Username, updated_entity):
+        return updated_entity
+    else:
+        raise HTTPException(status_code=404, detail="Error Updating")
 
 
-# API endpoint để xóa Entity Description dựa trên UserID
-@app.delete("/entities/{UserID}")
-def delete_entity(UserID: str):
-    if UserID not in entity_db:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
-    del entity_db[UserID]
-    return {"message": "Entity Description deleted"}
+# API endpoint để xóa User dựa trên Username
+@app.delete("/entities/{Username}")
+def delete_entity(Username: str):
+    if user_manager.delete_user(Username):
+        return {"message": "User deleted"}
+    else:
+        raise HTTPException(status_code=404, detail="Error Deleting")
 
 
 # API endpoint để đăng ký người dùng
-@app.post("/signup/", response_model=UserSignup)
+@app.post("/signup", response_model=User)
 def signup(user: UserSignup):
-    if user.UserID in user_db:
+    if user_manager.get_user(user.Username) is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already registered",
         )
-
     hashed_password = hash_password(user.Password)
     user.Password = hashed_password
-    user_db[user.UserID] = user
-    return JSONResponse(content=user.dict(), status_code=status.HTTP_200_OK)
+    new_user_data_id=generate_user_id()
+    new_user_data = user.dict() 
+    new_user_data.update({"UserID": f"{new_user_data_id}", "Balance": 0.0, "UserRole": "user"})
+    user_manager.add_user(new_user_data)
+    return JSONResponse(content=new_user_data, status_code=status.HTTP_200_OK)
 
 
 # API endpoint để đăng nhập và kiểm tra thông tin đăng nhập
-@app.post("/login/")
+@app.post("/login")
 def login(user: UserLogin):
-    if user.UserID not in user_db:
+    user_data=user_manager.get_user(user.Username)
+    if user_data is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username not found",
         )
 
-    stored_user = user_db[user.UserID]
-    if not verify_password(user.Password, stored_user.Password):
+    if not verify_password(user.Password, user_data.Password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",
         )
-
     return {"message": "Login successful"}
 
 
-# API endpoint để lấy thông tin người dùng dựa trên UserID
-@app.get("/users/{UserID}", response_model=UserSignup)
-def get_user(UserID: str):
-    if UserID not in user_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
 
-    return user_db[UserID]
+if __name__ == "__main__":
+    uvicorn.run(
+        "user:app",
+        host="127.0.0.1",
+        reload=True,
+        port=8000,
+        ssl_keyfile="./cert/key.pem",
+        ssl_certfile="./cert/cert.pem",
+    )
