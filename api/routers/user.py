@@ -16,7 +16,12 @@ from db_manager import db_manager as dbm
 
 # Khởi tạo ứng dụng FastAPI
 # app = FastAPI()
-app = APIRouter(prefix='/user')
+router = APIRouter(
+    prefix="/user",
+    tags=["users"],
+    responses={404: {"description": "Not found"}},
+)
+
 db_manager = dbm.DatabaseManage()
 db_manager.connect_to_database()
 
@@ -68,19 +73,19 @@ def generate_user_id(length=10):
     return user_id
 
 
-@app.get("/")
+@router.get("/")
 def admin_page():
     return {"message": "Hello World"}
 
 # API endpoint để tạo User
-@app.post("/create", response_model=User)
-def create_entity(entity: User):
-    db_manager.add_user(entity.dict())
-    return entity
+@router.post("/create", response_model=User)
+def create_entity(post: User):
+    db_manager.add_user(post.dict())
+    return post
 
 
 # API endpoint để lấy thông tin User dựa trên Username
-@app.get("/get/{Username}", response_model=User)
+@router.get("/get/{Username}", response_model=User)
 def get_entity(Username: str):
     entity = db_manager.get_user(Username)
     if entity is None:
@@ -89,16 +94,16 @@ def get_entity(Username: str):
 
 
 # API endpoint để cập nhật thông tin User dựa trên Username
-@app.put("/put/{Username}", response_model=User)
-def update_entity(Username: str, updated_entity: User):
-    if db_manager.update_user(Username, updated_entity):
-        return updated_entity
+@router.put("/put/{Username}", response_model=User)
+def update_entity(Username: str, post: User):
+    if db_manager.update_user(Username, post):
+        return post
     else:
         raise HTTPException(status_code=404, detail="Error Updating")
 
 
 # API endpoint để xóa User dựa trên Username
-@app.delete("/entities/{Username}")
+@router.delete("/entities/{Username}")
 def delete_entity(Username: str):
     if db_manager.delete_user(Username):
         return {"message": "User deleted"}
@@ -107,33 +112,32 @@ def delete_entity(Username: str):
 
 
 # API endpoint để đăng ký người dùng
-@app.post("/signup", response_model=User)
-def signup(user: UserSignup):
-    if db_manager.get_user(user.Username) is not None:
+@router.post("/signup", response_model=User)
+def signup(post: UserSignup):
+    if db_manager.get_user(post.Username) is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already registered",
         )
-    hashed_password = hash_password(user.Password)
-    user.Password = hashed_password
+    hashed_password = hash_password(post.Password)
+    post.Password = hashed_password
     new_user_data_id=generate_user_id()
-    new_user_data = user.dict() 
+    new_user_data = post.dict() 
     new_user_data.update({"UserID": f"{new_user_data_id}", "Balance": 0.0, "UserRole": "user"})
     db_manager.add_user(new_user_data)
     return JSONResponse(content=new_user_data, status_code=status.HTTP_200_OK)
 
 
 # API endpoint để đăng nhập và kiểm tra thông tin đăng nhập
-@app.post("/login")
-def login(user: UserLogin):
-    user_data=db_manager.get_user(user.Username)
+@router.post("/login")
+def login(post: UserLogin):
+    user_data=db_manager.get_user(post.Username)
     if user_data is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username not found",
         )
-
-    if not verify_password(user.Password, user_data.Password):
+    if not verify_password(post.Password, user_data.Password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",
@@ -144,7 +148,7 @@ def login(user: UserLogin):
 
 if __name__ == "__main__":
     uvicorn.run(
-        "user:app",
+        "user:router",
         host="127.0.0.1",
         reload=True,
         port=8000,

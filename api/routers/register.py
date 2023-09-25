@@ -9,8 +9,12 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from db_manager import db_manager as dbm 
 
 
-# app = APIRouter()
-app = FastAPI()
+router = APIRouter(
+    prefix="/register",
+    tags=["registers"],
+    responses={404: {"description": "Not found"}},
+)
+# app = FastAPI()
 db_manager = dbm.DatabaseManage()
 db_manager.connect_to_database()
 
@@ -44,12 +48,12 @@ def decode_token(token: str):
 
 
 # API endpoint để tạo Register và tạo token cho người dùng
-@app.post("/register", response_model=Register)
-def create_entity(user_data: Register):
-    entity = db_manager.get_user(user_data.Username)
+@router.post("/create", response_model=Register)
+def create_entity(post: Register):
+    entity = db_manager.get_user(post.Username)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
-    register_data = {"UserID": entity.UserID, "Problem": user_data.Problem}
+    register_data = {"UserID": entity.UserID, "Problem": post.Problem}
     token = create_token(register_data)
     register_data["Token"] = token
     db_manager.add_register(register_data)
@@ -58,28 +62,20 @@ def create_entity(user_data: Register):
 
 
 # API endpoint để lấy thông tin Register dựa trên UserID
-@app.get("/register/{Username}", response_model=Register)
+@router.get("/get/{Username}", response_model=Register)
 def get_entity(Username: str):
     user_data = db_manager.get_user(Username)
     if user_data is None:
         raise HTTPException(status_code=404, detail="Register not found")
-    register_data = db_manager.get_register()
+    register_data = db_manager.get_register_by_user_id(user_data.UserID)
     return register_data
 
 
-# API endpoint để cập nhật thông tin Register dựa trên UserID
-@app.put("/entities/{UserID}", response_model=Register)
-def update_entity(UserID: str, updated_entity: Register):
-    if UserID not in entity_db:
-        raise HTTPException(status_code=404, detail="Register not found")
-    entity_db[UserID] = updated_entity
-    return updated_entity
-
 
 # API endpoint để xóa Register dựa trên UserID
-@app.delete("/entities/{UserID}")
-def delete_entity(UserID: str):
-    if UserID not in entity_db:
+@router.delete("/delete/{Token}")
+def delete_entity(Token: str, query:str):
+    if not db_manager.get_register_by_user_id(query):
         raise HTTPException(status_code=404, detail="Register not found")
-    del entity_db[UserID]
+    db_manager.delete_register(Token)
     return {"message": "Register deleted"}
