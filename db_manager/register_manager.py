@@ -19,9 +19,11 @@ class RegisterManager:
             self.cursor.execute(create_table_query)
             self.conn.commit()
             print("Register table created successfully.")
+            return True
         except psycopg2.Error as e:
             print(f"Error creating register table: {e}")
             self.conn.rollback()
+            return False
 
     def add_register(self, register_data):
         try:
@@ -42,6 +44,21 @@ class RegisterManager:
             print(f"Error adding register: {e}")
             self.conn.rollback()
             return False
+        
+    def get_register(self, token):
+        try:
+            select_query = sql.SQL('SELECT * FROM "register" WHERE Token = %s')
+            self.cursor.execute(select_query, (token,))
+            register = self.cursor.fetchone()
+            if register:
+                return register
+            else:
+                print("Register not found for the specified Token.")
+                return None
+        except psycopg2.Error as e:
+            print(f"Error getting register by UserID: {e}")
+            self.conn.rollback()
+            return None
 
     def get_register_by_user_id(self, user_id):
         try:

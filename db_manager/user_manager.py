@@ -25,9 +25,11 @@ class UserManager:
             self.cursor.execute(create_table_query)
             self.conn.commit()
             print("User table created successfully.")
+            return True
         except psycopg2.Error as e:
             print(f"Error creating user table: {e}")
             self.conn.rollback()
+            return False
 
     def add_user(self, user_data):
         try:
@@ -55,7 +57,22 @@ class UserManager:
             self.conn.rollback()
             return False
 
-    def get_user(self, user_name):
+    def get_user(self, user_id):
+        try:
+            select_query = sql.SQL('SELECT * FROM "user" WHERE UserID = %s')
+            self.cursor.execute(select_query, (user_id,))
+            user = self.cursor.fetchone()
+            if user:
+                return user
+            else:
+                print("User not found.")
+                return None
+        except psycopg2.Error as e:
+            print(f"Error getting user: {e}")
+            self.conn.rollback()
+            return None
+
+    def get_user_by_username(self, user_name):
         try:
             select_query = sql.SQL('SELECT * FROM "user" WHERE Username = %s')
             self.cursor.execute(select_query, (user_name,))
@@ -70,7 +87,7 @@ class UserManager:
             self.conn.rollback()
             return None
 
-    def update_user(self, user_name, new_data):
+    def update_user_by_username(self, user_name, new_data):
         try:
             # Tạo danh sách các phần của câu truy vấn SQL
             set_statements = []
