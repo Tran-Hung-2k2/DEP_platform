@@ -4,18 +4,26 @@
 
 from fastapi import FastAPI
 import uvicorn
-from routers import device, register, user
+import device, register, user
+import os
+import sys
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from db_manager.db_manager import DatabaseManager
 
 app = FastAPI()
-app.include_router(device.router) 
-app.include_router(register.router)  
-app.include_router(user.router)  
+app.include_router(device.router)
+app.include_router(register.router)
+app.include_router(user.router)
 
+db_manager = DatabaseManager()
+db_manager.connect_to_database()
 
 
 @app.get("/")
 async def root():
     return {"message": "Hello Bigger Applications!"}
+
 
 if __name__ == "__main__":
     uvicorn.run(

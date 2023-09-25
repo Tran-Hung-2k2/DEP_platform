@@ -1,14 +1,13 @@
 # database server here
 import psycopg2
-import json
 import os
 import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "."))
 from user_manager import UserManager
 from register_manager import RegisterManager
 from device_manager import DeviceManager
 from attributes_manager import AttributesManager
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from configs.config import config
 
 db_name = config["USER_DB_NAME"]
@@ -343,7 +342,7 @@ class DatabaseManager:
 
     def delete_user_example(self):
         # Xóa người dùng bằng ID người dùng
-        user_id_to_delete = "user123"
+        user_id_to_delete = "0123456789"
         if self.delete_user(user_id_to_delete):
             print("User deleted successfully.")
         else:

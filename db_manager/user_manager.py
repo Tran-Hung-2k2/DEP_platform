@@ -12,7 +12,7 @@ class UserManager:
         CREATE TABLE IF NOT EXISTS "user" (
             UserID CHAR(10) PRIMARY KEY,
             Username VARCHAR(40) UNIQUE,
-            Password VARCHAR(50),
+            Password VARCHAR(255),
             Gender VARCHAR(10),
             Email VARCHAR(100),
             DateOfBirth DATE,
