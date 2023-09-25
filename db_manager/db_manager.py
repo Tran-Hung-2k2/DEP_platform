@@ -256,14 +256,13 @@ if __name__ == "__main__":
     if db_manager.add_user(new_user_data):
         print("User added successfully.")
 
-    user_id_to_get = "user123"
-    user = db_manager.get_user(user_id_to_get)
+    user_name_to_get = "JohnDoe"
+    user = db_manager.get_user(user_name_to_get)
     if user:
         print(f"User found: {user}")
 
-    user_id_to_update = "user123"
+    user_name_to_update = "JohnDoe"
     updated_user_data = {
-        "Username": "JohnDoeUpdated",
         "Password": "newpassword123",
         "Gender": "Female",
         "Email": "newemail@example.com",
@@ -273,109 +272,109 @@ if __name__ == "__main__":
         "UserRole": "Admin",
     }
 
-    if db_manager.update_user(user_id_to_update, updated_user_data):
+    if db_manager.update_user(user_name_to_update, updated_user_data):
         print("User updated successfully.")
 
-    # # Tạo bảng Device
-    # db_manager.create_device_table()
+    # Tạo bảng Device
+    db_manager.create_device_table()
 
-    # # Ví dụ quản lý Device
-    # new_device_data = (
-    #     "device123",
-    #     "user123",
-    #     "MyDevice",
-    #     "ABC123",
-    # )
+    # Ví dụ quản lý Device
+    new_device_data = (
+        "device123",
+        "user123",
+        "MyDevice",
+        "ABC123",
+    )
 
-    # if db_manager.add_device(new_device_data):
-    #     print("Device added successfully.")
+    if db_manager.add_device(new_device_data):
+        print("Device added successfully.")
 
-    # device_id_to_get = "device123"
-    # device = db_manager.get_device(device_id_to_get)
-    # if device:
-    #     print(f"Device found: {device}")
+    device_id_to_get = "device123"
+    device = db_manager.get_device(device_id_to_get)
+    if device:
+        print(f"Device found: {device}")
 
-    # device_id_to_update = "device123"
-    # updated_device_data = (
-    #     "UpdatedDeviceName",
-    #     "XYZ789",
-    # )
+    device_id_to_update = "device123"
+    updated_device_data = (
+        "UpdatedDeviceName",
+        "XYZ789",
+    )
 
-    # if db_manager.update_device(device_id_to_update, updated_device_data):
-    #     print("Device updated successfully.")
+    if db_manager.update_device(device_id_to_update, updated_device_data):
+        print("Device updated successfully.")
 
-    # device_id_to_delete = "device123"
-    # if db_manager.delete_device(device_id_to_delete):
-    #     print("Device deleted successfully.")
+    device_id_to_delete = "device123"
+    if db_manager.delete_device(device_id_to_delete):
+        print("Device deleted successfully.")
 
-    # # Tạo bảng Register
-    # db_manager.create_register_table()
+    # Tạo bảng Register
+    db_manager.create_register_table()
 
-    # # Ví dụ quản lý Register
-    # new_register_data = (
-    #     "token123",
-    #     "user123",
-    # )
+    # Ví dụ quản lý Register
+    new_register_data = (
+        "token123",
+        "user123",
+    )
 
-    # if db_manager.add_register(new_register_data):
-    #     print("Register added successfully.")
+    if db_manager.add_register(new_register_data):
+        print("Register added successfully.")
 
-    # token_to_get = "token123"
-    # register = db_manager.get_register(token_to_get)
-    # if register:
-    #     print(f"Register found: {register}")
+    token_to_get = "token123"
+    register = db_manager.get_register(token_to_get)
+    if register:
+        print(f"Register found: {register}")
 
-    # token_to_delete = "token123"
-    # if db_manager.delete_register(token_to_delete):
-    #     print("Register deleted successfully.")
+    token_to_delete = "token123"
+    if db_manager.delete_register(token_to_delete):
+        print("Register deleted successfully.")
 
-    # user_id_to_delete = "user123"
-    # if db_manager.delete_user(user_id_to_delete):
-    #     print("User deleted successfully.")
+    user_id_to_delete = "user123"
+    if db_manager.delete_user(user_id_to_delete):
+        print("User deleted successfully.")
 
-    # db_manager.connect_to_database(current_db_name="track_and_trace")
+    db_manager.connect_to_database(current_db_name="track_and_trace")
 
-    # # Tạo bảng Attributes
-    # db_manager.create_attributes_table()
+    # Tạo bảng Attributes
+    db_manager.create_attributes_table()
 
-    # # Example: Add Attributes
-    # new_attributes_data = (
-    #     "device123",
-    #     "2023-09-24 10:30:00",
-    #     "running",
-    #     60.0,
-    #     90.0,
-    #     45.123456,
-    #     -78.987654,
-    #     json.dumps({"info1": "value1", "info2": "value2"}),
-    # )
-    # if db_manager.add_attributes(new_attributes_data):
-    #     print("Attributes added successfully.")
+    # Example: Add Attributes
+    new_attributes_data = (
+        "device123",
+        "2023-09-24 10:30:00",
+        "running",
+        60.0,
+        90.0,
+        45.123456,
+        -78.987654,
+        json.dumps({"info1": "value1", "info2": "value2"}),
+    )
+    if db_manager.add_attributes(new_attributes_data):
+        print("Attributes added successfully.")
 
-    # # Example: Get Attributes by ID
-    # attribute_id_to_get = 1  # Replace with the desired attribute ID
-    # attributes = db_manager.get_attributes(attribute_id_to_get)
-    # if attributes:
-    #     print(f"Attributes found: {attributes}")
+    # Example: Get Attributes by ID
+    attribute_id_to_get = 1  # Replace with the desired attribute ID
+    attributes = db_manager.get_attributes(attribute_id_to_get)
+    if attributes:
+        print(f"Attributes found: {attributes}")
 
-    # # Example: Update Attributes
-    # attribute_id_to_update = 1  # Replace with the desired attribute ID
-    # updated_attributes_data = (
-    #     "device123",
-    #     "2023-09-24 11:45:00",
-    #     "stopped",
-    #     0.0,
-    #     180.0,
-    #     46.987654,
-    #     -77.123456,
-    #     json.dumps({"info3": "value3", "info4": "value4"}),
-    # )
-    # if db_manager.update_attributes(attribute_id_to_update, updated_attributes_data):
-    #     print("Attributes updated successfully.")
+    # Example: Update Attributes
+    attribute_id_to_update = 1  # Replace with the desired attribute ID
+    updated_attributes_data = (
+        "device123",
+        "2023-09-24 11:45:00",
+        "stopped",
+        0.0,
+        180.0,
+        46.987654,
+        -77.123456,
+        json.dumps({"info3": "value3", "info4": "value4"}),
+    )
+    if db_manager.update_attributes(attribute_id_to_update, updated_attributes_data):
+        print("Attributes updated successfully.")
 
-    # # Example: Delete Attributes
-    # attribute_id_to_delete = 1
-    # if db_manager.delete_attributes(attribute_id_to_delete):
-    #     print("Attributes deleted successfully.")
+    # Example: Delete Attributes
+    attribute_id_to_delete = 1
+    if db_manager.delete_attributes(attribute_id_to_delete):
+        print("Attributes deleted successfully.")
 
     db_manager.close_connection()

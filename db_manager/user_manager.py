@@ -10,16 +10,16 @@ class UserManager:
     def create_user_table(self):
         create_table_query = """
         CREATE TABLE IF NOT EXISTS "user" (
-            UserID VARCHAR(10) PRIMARY KEY,
-            Username VARCHAR(255),
-            Password VARCHAR(255),
-            Gender VARCHAR(255),
-            Email VARCHAR(255),
+            UserID CHAR(10) PRIMARY KEY,
+            Username VARCHAR(40) UNIQUE,
+            Password VARCHAR(50),
+            Gender VARCHAR(10),
+            Email VARCHAR(100),
             DateOfBirth DATE,
-            PhoneNumber VARCHAR(255),
+            PhoneNumber VARCHAR(15),
             Balance DECIMAL(10, 2),
-            UserRole VARCHAR(255)
-        )
+            UserRole VARCHAR(50)
+        );
         """
         try:
             self.cursor.execute(create_table_query)
@@ -55,10 +55,10 @@ class UserManager:
             self.conn.rollback()
             return False
 
-    def get_user(self, user_id):
+    def get_user(self, user_name):
         try:
-            select_query = sql.SQL('SELECT * FROM "user" WHERE UserID = %s')
-            self.cursor.execute(select_query, (user_id,))
+            select_query = sql.SQL('SELECT * FROM "user" WHERE Username = %s')
+            self.cursor.execute(select_query, (user_name,))
             user = self.cursor.fetchone()
             if user:
                 return user
@@ -70,7 +70,7 @@ class UserManager:
             self.conn.rollback()
             return None
 
-    def update_user(self, user_id, new_data):
+    def update_user(self, user_name, new_data):
         try:
             # Tạo danh sách các phần của câu truy vấn SQL
             set_statements = []
@@ -78,15 +78,16 @@ class UserManager:
 
             # Xử lý từng cặp key-value trong new_data
             for key, value in new_data.items():
-                set_statements.append(f"{key} = %s")
-                update_values.append(value)
+                if key not in ["Username", "UserID"]:
+                    set_statements.append(f"{key} = %s")
+                    update_values.append(value)
 
             # Thêm giá trị UserID vào danh sách update_values
-            update_values.append(user_id)
+            update_values.append(user_name)
 
             # Xây dựng câu truy vấn SQL
             update_query = (
-                f'UPDATE "user" SET {", ".join(set_statements)} WHERE UserID = %s'
+                f'UPDATE "user" SET {", ".join(set_statements)} WHERE Username = %s'
             )
 
             # Thực hiện câu truy vấn cập nhật

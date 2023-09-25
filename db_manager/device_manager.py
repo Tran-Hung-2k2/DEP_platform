@@ -10,10 +10,10 @@ class DeviceManager:
     def create_device_table(self):
         create_table_query = """
         CREATE TABLE IF NOT EXISTS "device" (
-            DeviceID VARCHAR(10) PRIMARY KEY,
-            UserID VARCHAR(10) REFERENCES "user" (UserID),
+            DeviceID CHAR(10) PRIMARY KEY,
+            UserID CHAR(10) REFERENCES "user" (UserID),
             DeviceName VARCHAR(255),
-            PlateNo VARCHAR(255)
+            PlateNo VARCHAR(20) UNIQUE
         )
         """
         try:
@@ -26,10 +26,17 @@ class DeviceManager:
 
     def add_device(self, device_data):
         try:
+            data_tuple = (
+                device_data.get("DeviceID"),
+                device_data.get("UserID"),
+                device_data.get("DeviceName"),
+                device_data.get("PlateNo"),
+            )
+
             insert_query = sql.SQL(
                 'INSERT INTO "device" (DeviceID, UserID, DeviceName, PlateNo) VALUES (%s, %s, %s, %s)'
             )
-            self.cursor.execute(insert_query, device_data)
+            self.cursor.execute(insert_query, data_tuple)
             self.conn.commit()
             return True
         except psycopg2.Error as e:
@@ -51,6 +58,17 @@ class DeviceManager:
             print(f"Error getting device: {e}")
             self.conn.rollback()
             return None
+
+    def get_device_by_user(self, user_id):
+        try:
+            select_query = sql.SQL('SELECT * FROM "device" WHERE UserID = %s')
+            self.cursor.execute(select_query, (user_id,))
+            devices = self.cursor.fetchall()
+            return devices
+        except psycopg2.Error as e:
+            print(f"Error getting devices for user: {e}")
+            self.conn.rollback()
+            return []
 
     def update_device(self, device_id, new_data):
         try:
