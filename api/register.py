@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel,Field
 from typing import List
 import jwt
@@ -6,25 +6,25 @@ import sys
 import os
 from jwt import PyJWTError
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from db_manager import db_manager 
+from db_manager import db_manager as dbm 
 
 
-# Khởi tạo ứng dụng FastAPI
+# app = APIRouter()
 app = FastAPI()
-register_manager = db_manager.DatabaseManage()
-register_manager.connect_to_database()
+db_manager = dbm.DatabaseManage()
+db_manager.connect_to_database()
 
 
 
 # Mô hình Pydantic cho Register
 class Register(BaseModel):
     Token: str = Field(max_length=255)
-    UserID: str = Field(max_length=10)
-    Service: str = Field(max_length=255)
+    Username: str = Field(max_length=10)
+    Problem: str = Field(max_length=255)
 
 
 # Secret key để mã hóa và giải mã token
-SECRET_KEY = "tranhungchubedan"
+SECRET_KEY = "SECRETKEY"
 
 
 # Hàm tạo token
@@ -42,35 +42,29 @@ def decode_token(token: str):
         return None
 
 
+
 # API endpoint để tạo Register và tạo token cho người dùng
 @app.post("/register", response_model=Register)
-def create_entity(entity: Register):
-    if entity.UserID in entity_db:
-        raise HTTPException(
-            status_code=400,
-            detail="Entity with this UserID already exists",
-        )
-    # Tạo token
-    token_data = {"UserID": entity.UserID, "Service": entity.Service}
-    token = create_token(token_data)
-    entity.Token = token
-    entity_db[entity.UserID] = entity
-    return entity
+def create_entity(user_data: Register):
+    entity = db_manager.get_user(user_data.Username)
+    if entity is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    register_data = {"UserID": entity.UserID, "Problem": user_data.Problem}
+    token = create_token(register_data)
+    register_data["Token"] = token
+    db_manager.add_register(register_data)
+    return register_data
 
-
-# API endpoint để lấy danh sách Registers
-@app.get("/entities/", response_model=List[Register])
-def get_entities():
-    return list(entity_db.values())
 
 
 # API endpoint để lấy thông tin Register dựa trên UserID
-@app.get("/entities/{UserID}", response_model=Register)
-def get_entity(UserID: str):
-    entity = entity_db.get(UserID)
-    if entity is None:
+@app.get("/register/{Username}", response_model=Register)
+def get_entity(Username: str):
+    user_data = db_manager.get_user(Username)
+    if user_data is None:
         raise HTTPException(status_code=404, detail="Register not found")
-    return entity
+    register_data = db_manager.get_register()
+    return register_data
 
 
 # API endpoint để cập nhật thông tin Register dựa trên UserID

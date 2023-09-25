@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel,Field
 from typing import List, Optional
@@ -12,12 +12,13 @@ import time
 import random
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from db_manager import db_manager 
+from db_manager import db_manager as dbm
 
 # Khởi tạo ứng dụng FastAPI
-app = FastAPI()
-user_manager = db_manager.DatabaseManage()
-user_manager.connect_to_database()
+# app = FastAPI()
+app = APIRouter(prefix='/user')
+db_manager = dbm.DatabaseManage()
+db_manager.connect_to_database()
 
 
 # Mô hình Pydantic cho đăng nhập (login)
@@ -74,14 +75,14 @@ def admin_page():
 # API endpoint để tạo User
 @app.post("/create", response_model=User)
 def create_entity(entity: User):
-    user_manager.add_user(entity.dict())
+    db_manager.add_user(entity.dict())
     return entity
 
 
 # API endpoint để lấy thông tin User dựa trên Username
 @app.get("/get/{Username}", response_model=User)
 def get_entity(Username: str):
-    entity = user_manager.get_user(Username)
+    entity = db_manager.get_user(Username)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
     return entity
@@ -90,7 +91,7 @@ def get_entity(Username: str):
 # API endpoint để cập nhật thông tin User dựa trên Username
 @app.put("/put/{Username}", response_model=User)
 def update_entity(Username: str, updated_entity: User):
-    if user_manager.update_user(Username, updated_entity):
+    if db_manager.update_user(Username, updated_entity):
         return updated_entity
     else:
         raise HTTPException(status_code=404, detail="Error Updating")
@@ -99,7 +100,7 @@ def update_entity(Username: str, updated_entity: User):
 # API endpoint để xóa User dựa trên Username
 @app.delete("/entities/{Username}")
 def delete_entity(Username: str):
-    if user_manager.delete_user(Username):
+    if db_manager.delete_user(Username):
         return {"message": "User deleted"}
     else:
         raise HTTPException(status_code=404, detail="Error Deleting")
@@ -108,7 +109,7 @@ def delete_entity(Username: str):
 # API endpoint để đăng ký người dùng
 @app.post("/signup", response_model=User)
 def signup(user: UserSignup):
-    if user_manager.get_user(user.Username) is not None:
+    if db_manager.get_user(user.Username) is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already registered",
@@ -118,14 +119,14 @@ def signup(user: UserSignup):
     new_user_data_id=generate_user_id()
     new_user_data = user.dict() 
     new_user_data.update({"UserID": f"{new_user_data_id}", "Balance": 0.0, "UserRole": "user"})
-    user_manager.add_user(new_user_data)
+    db_manager.add_user(new_user_data)
     return JSONResponse(content=new_user_data, status_code=status.HTTP_200_OK)
 
 
 # API endpoint để đăng nhập và kiểm tra thông tin đăng nhập
 @app.post("/login")
 def login(user: UserLogin):
-    user_data=user_manager.get_user(user.Username)
+    user_data=db_manager.get_user(user.Username)
     if user_data is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
