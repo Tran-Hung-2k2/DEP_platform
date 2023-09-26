@@ -10,7 +10,7 @@ from device_manager import DeviceManager
 from attributes_manager import AttributesManager
 from pykafka import KafkaClient
 from pykafka.simpleconsumer import OffsetType
-
+import json
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from configs.config import config
 
@@ -222,15 +222,18 @@ class DatabaseManager:
         for message in consumer:
             if message is not None:
                 data = json.loads(message.value.decode('utf-8'))
-                # self.data_preprocess(data)
-
+                if self.data_preprocess(data):
+                    self.add_attributes(data)
+                
         # Đóng kết nối sau khi hoàn thành
         consumer.stop()
 
 
     def data_preprocess(self, data):
         if data.get("Problem") == "TrackAndTrace" :
-            pass
+            device_id = data.get("DeviceID")
+            return self.get_device(device_id) != None 
+
     def create_user_table_example(self):
         # Tạo bảng "user" nếu nó chưa tồn tại
         if self.create_user_table():
