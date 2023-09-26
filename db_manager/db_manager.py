@@ -11,7 +11,6 @@ from register_manager import RegisterManager
 from device_manager import DeviceManager
 from attributes_manager import AttributesManager
 from pykafka import KafkaClient
-from pykafka.simpleconsumer import OffsetType
 from configs.config import config
 
 db_name = config["USER_DB_NAME"]
@@ -241,7 +240,7 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error in Kafka Consumer: {str(e)}")
     def data_preprocess(self, data):
-        if data.get("Problem") == "TrackAndTrace" :
+        if data.get("Problem") == "TrackAndTrace":
             device_id = data.get("DeviceID")
             return self.get_device(device_id) != None 
 

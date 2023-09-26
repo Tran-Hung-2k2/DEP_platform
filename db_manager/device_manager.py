@@ -50,9 +50,12 @@ class DeviceManager:
         try:
             select_query = sql.SQL('SELECT * FROM "device" WHERE DeviceID = %s')
             self.cursor.execute(select_query, (device_id,))
-            device = self.cursor.fetchone()
-            if device:
-                return device
+            device_row = self.cursor.fetchone()
+
+            if device_row:
+                columns = [desc[0] for desc in self.cursor.description]
+                device_dict = dict(zip(columns, device_row))
+                return device_dict
             else:
                 print("Device not found.")
                 return None
@@ -66,7 +69,11 @@ class DeviceManager:
             select_query = sql.SQL('SELECT * FROM "device" WHERE UserID = %s')
             self.cursor.execute(select_query, (user_id,))
             devices = self.cursor.fetchall()
-            return devices
+
+            columns = [desc[0] for desc in self.cursor.description]
+            devices_list = [dict(zip(columns, device)) for device in devices]
+
+            return devices_list
         except psycopg2.Error as e:
             print(f"Error getting devices for user: {e}")
             self.conn.rollback()

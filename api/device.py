@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi import FastAPI, HTTPException, APIRouter, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional
 import sys
@@ -21,10 +22,10 @@ db_manager.connect_to_database()
 
 # Mô hình Pydantic cho Device
 class Device(BaseModel):
-    DeviceID: str = Field(max_length=15)
-    Username: str = Field(max_length=15)
+    DeviceID: str = Field(max_length=10)
+    Username: str = Field(max_length=40)
     DeviceName: str = Field(max_length=255)
-    PlateNo: str = Field(max_length=15)
+    PlateNo: str = Field(max_length=20)
 
 
 def generate_device_id(length=15):
@@ -37,7 +38,7 @@ def generate_device_id(length=15):
 
 # API endpoint để tạo Device
 @router.post("/", response_model=Device)
-def create_entity(post: Device):
+def create_device(post: Device):
     entity = db_manager.get_user(post.Username)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -49,32 +50,36 @@ def create_entity(post: Device):
         "PlateNo": post.PlateNo,
     }
     db_manager.add_device(device_data)
-    return device_data
+    return JSONResponse(content=device_data, status_code=status.HTTP_200_OK)
+
 
 
 # API endpoint để lấy thông tin Device dựa trên DeviceID
 @router.get("/deviceid/{DeviceID}", response_model=Device)
-def get_entity(DeviceID: str):
+def get_device_by_device_id(DeviceID: str):
     entity = db_manager.get_device(DeviceID)
     if entity is None:
         raise HTTPException(status_code=404, detail="Device not found")
-    return entity
+    return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
+    
 
 
 # API endpoint để cập nhật thông tin Device dựa trên UserID
 @router.get("/userid/{UserID}", response_model=Device)
-def get_entity_many(UserID: str):
+def get_device_by_user_id(UserID: str):
     entity = db_manager.get_device_by_user(UserID)
     if entity is None:
         raise HTTPException(status_code=404, detail="Device not found")
-    return entity
+    return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
+    
 
 
 # API endpoint để xóa Device dựa trên DeviceID
 @router.delete("/{DeviceID}")
-def delete_entity(DeviceID: str):
+def delete_device(DeviceID: str):
     entity = db_manager.get_device(DeviceID)
     if entity is None:
         raise HTTPException(status_code=404, detail="Device not found")
     db_manager.delete_device(DeviceID)
-    return {"message": "Device deleted"}
+    return JSONResponse(content={"message": "Device deleted"}, status_code=status.HTTP_200_OK)
+

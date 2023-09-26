@@ -63,18 +63,8 @@ class UserManager:
             self.cursor.execute(select_query, (user_id,))
             user = self.cursor.fetchone()
             if user:
-                # Chuyển tuple thành dictionary
-                user_dict = {
-                    "UserID": user[0],
-                    "Username": user[1],
-                    "Password": user[2],
-                    "Gender": user[3],
-                    "Email": user[4],
-                    "DateOfBirth": user[5],
-                    "PhoneNumber": user[6],
-                    "Balance": user[7],
-                    "UserRole": user[8],
-                }
+                columns = [desc[0] for desc in self.cursor.description]
+                user_dict = dict(zip(columns, user))
                 return user_dict
             else:
                 print("User not found.")
@@ -89,22 +79,13 @@ class UserManager:
             select_query = sql.SQL('SELECT * FROM "user" WHERE Username = %s')
             self.cursor.execute(select_query, (user_name,))
             user = self.cursor.fetchone()
+
             if user:
-                # Chuyển tuple thành dictionary
-                user_dict = {
-                    "UserID": user[0],
-                    "Username": user[1],
-                    "Password": user[2],
-                    "Gender": user[3],
-                    "Email": user[4],
-                    "DateOfBirth": user[5],
-                    "PhoneNumber": user[6],
-                    "Balance": user[7],
-                    "UserRole": user[8],
-                }
+                columns = [desc[0] for desc in self.cursor.description]
+                user_dict = dict(zip(columns, user))
                 return user_dict
             else:
-                print("User not found.")
+                print("User with Username =", user_name, "not found")
                 return None
         except psycopg2.Error as e:
             print(f"Error getting user: {e}")
