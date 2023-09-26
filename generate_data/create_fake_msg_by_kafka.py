@@ -1,44 +1,28 @@
-from confluent_kafka import Producer
 import json
-import random
+from pykafka import KafkaClient
 import time
+import random
 
-# Kafka configuration
-kafka_config = {
-    'bootstrap.servers': 'localhost:29092',
-    'group.id': 'django-server',
-    'auto.offset.reset': 'earliest'
-}
+topic_name = "alo"
 
-# Kafka topic
-topic = "TrackAndTrace"
+client = KafkaClient(hosts="localhost:29092")
+topic = client.topics[topic_name.encode()]
 
-# Create a Kafka producer instance
-producer = Producer(kafka_config)
+producer = topic.get_producer()
 
-# Send 1000 random messages
-for i in range(1000):
-    # Generate random data for each message
-    sample_data = {
-        'device_id': f'device_{random.randint(1, 100)}',
-        'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
-        'status': random.choice(['OK', 'Error']),
-        'speed': random.uniform(0, 100),
-        'direction': random.choice(['N', 'S', 'E', 'W']),
-        'longitude': random.uniform(-180, 180),
-        'latitude': random.uniform(-90, 90),
-        'extra_info': {
-            'random_key1': random.randint(1, 100),
-            'random_key2': random.uniform(0, 1),
-            'random_key3': random.choice(['A', 'B', 'C']),
-        }
+while True:
+    obj_ms = {
+        "status": random.choice(["stop", "run", "offline", "online"]),
+        "speed": random.choice(["50.55", "60", "23.335", "77", "92.54"]),
+        "direction": random.choice(["41.21", "452.23", "455.22", "66.233"]),
+        "longitude": random.choice(["77.5666", "88.523123", "7852.24647", "96633.66"]),
+        "latitude": random.choice(["77.5666", "88.523123", "7852.24647", "96633.66"]),
+        "extra_info": {"a": "b"},
+        "device_id": "1111111111",
+        "problem": "track_and_trace"
     }
 
-    # Serialize the random data to JSON
-    message_value = json.dumps(sample_data)
-
-    # Send the data to the Kafka topic
-    producer.produce(topic, key=None, value=message_value)
-
-# Wait for any outstanding messages to be delivered
-producer.flush()
+    json_mes = json.dumps(obj_ms)
+    producer.produce(json_mes.encode("utf-8"))
+    print("Đã gửi")
+    time.sleep(3)  # Tạm dừng 3 giây trước khi gửi bản tin tiếp theo

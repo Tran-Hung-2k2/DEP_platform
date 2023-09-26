@@ -233,7 +233,7 @@ class DatabaseManager:
                         if ref.data_preprocess(data):
                             print(self.add_attributes(data))
                         else:
-                            print("Data processing failed")
+                            print("Data pre-processing failed")
                     except Exception as e:
                         print(f"Error processing message: {str(e)}")
 
@@ -469,7 +469,7 @@ if __name__ == "__main__":
     db_manager.add_device_example()
     db_manager.get_device_example()
     db_manager.update_device_example()
-    db_manager.delete_device_example()
+    # db_manager.delete_device_example()
 
     # Register
     db_manager.create_register_table_example()
@@ -482,7 +482,7 @@ if __name__ == "__main__":
     db_track_and_trace.add_attributes_example()
     db_track_and_trace.add_batch_attributes_example()
     db_track_and_trace.get_attributes_by_id_example()
-    db_track_and_trace.get_attributes_example()
+    # db_track_and_trace.get_attributes_example()
 
     # kafka
     # db_track_and_trace.data_consume(db_manager, "localhost", "29092", "alo")

@@ -35,15 +35,15 @@ def generate_device_id(length=15):
 # API endpoint để tạo Device
 @router.post("/")
 def create_device(post: Device):
-    entity = db_manager.get_user(post.Username)
+    entity = db_manager.get_user(post.user_name)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
     device_id = generate_device_id()
     device_data = {
-        "DeviceID": device_id,
-        "UserID": entity.UserID,
-        "DeviceName": post.DeviceName,
-        "PlateNo": post.PlateNo,
+        "device_id": device_id,
+        "user_id": entity["user_id"],
+        "device_name": post.device_name,
+        "plate_no": post.plate_no,
     }
     db_manager.add_device(device_data)
     return JSONResponse(content=device_data, status_code=status.HTTP_200_OK)

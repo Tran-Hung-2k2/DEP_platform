@@ -46,10 +46,10 @@ def decode_token(token: str):
 # API endpoint để tạo Register và tạo token cho người dùng
 @router.post("/")
 def create_register(post: Register):
-    entity = db_manager.get_user(post.Username)
+    entity = db_manager.get_user(post.user_name)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
-    register_data = {"UserID": entity.UserID, "Problem": post.Problem}
+    register_data = {"UserID": entity["user_id"], "Problem": post.problem}
     token = create_token(register_data)
     register_data["Token"] = token
     db_manager.add_register(register_data)
@@ -62,7 +62,7 @@ def get_register(Username: str):
     user_data = db_manager.get_user(Username)
     if user_data is None:
         raise HTTPException(status_code=404, detail="Register not found")
-    register_data = db_manager.get_register_by_user_id(user_data.UserID)
+    register_data = db_manager.get_register_by_user_id(user_data["user_id"])
     return JSONResponse(content=register_data, status_code=status.HTTP_200_OK)
 
 
