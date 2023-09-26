@@ -78,7 +78,7 @@ def get_user(Username: str):
     print(entity)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
-    entity["dateofbirth"] = entity["dateofbirth"].isoformat()
+    entity["date_of_birth"] = entity["date_of_birth"].isoformat()
     entity["balance"] = float(entity["balance"])
     return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
 
