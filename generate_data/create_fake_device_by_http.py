@@ -8,17 +8,18 @@ server_url = "http://localhost:8000/user_service/device/create"
 user_number=20
 # Gửi 1 batch lớn
 
-def generate_random_device_data(user_id):
+def generate_random_device_data():
     num_devices = random.randint(1, 3)  
     devices = []
 
     for _ in range(num_devices):
+        username = random.choices(["Hung","Minh","Duong"])
         device_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=15))
         device_name = ''.join(random.choices(string.ascii_letters, k=10))
         plate_no = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
         device_data = {
             "device_id": device_id,
-            "user_id": user_id,
+            "user_name": username,
             "device_name": device_name,
             "plate_no": plate_no,
         }
