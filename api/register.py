@@ -7,9 +7,7 @@ import jwt
 import sys
 import os
 from jwt import PyJWTError
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from db_manager.db_manager import DatabaseManager
+from user import db_manager
 
 
 router = APIRouter(
@@ -18,15 +16,12 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-db_manager = DatabaseManager()
-db_manager.connect_to_database()
-
 
 # Mô hình Pydantic cho Register
 class Register(BaseModel):
-    Token: str = Field(max_length=15)
-    Username: str = Field(max_length=10)
-    Problem: str = Field(max_length=50)
+    token: str = Field(max_length=15)
+    user_name: str = Field(max_length=10)
+    problem: str = Field(max_length=50)
 
 
 # Secret key để mã hóa và giải mã token
@@ -48,28 +43,26 @@ def decode_token(token: str):
         return None
 
 
-
 # API endpoint để tạo Register và tạo token cho người dùng
-@router.post("/", response_model=Register)
+@router.post("/")
 def create_register(post: Register):
-    entity = db_manager.get_user(post.Username)
+    entity = db_manager.get_user(post.user_name)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
-    register_data = {"UserID": entity.UserID, "Problem": post.Problem}
+    register_data = {"UserID": entity["user_id"], "Problem": post.problem}
     token = create_token(register_data)
     register_data["Token"] = token
     db_manager.add_register(register_data)
     return JSONResponse(content=register_data, status_code=status.HTTP_200_OK)
 
 
-
 # API endpoint để lấy thông tin Register dựa trên UserID
-@router.get("/{Username}", response_model=Register)
+@router.get("/{Username}")
 def get_register(Username: str):
     user_data = db_manager.get_user(Username)
     if user_data is None:
         raise HTTPException(status_code=404, detail="Register not found")
-    register_data = db_manager.get_register_by_user_id(user_data.UserID)
+    register_data = db_manager.get_register_by_user_id(user_data["user_id"])
     return JSONResponse(content=register_data, status_code=status.HTTP_200_OK)
 
 
@@ -79,4 +72,6 @@ def delete_register(Token: str, query: str):
     if not db_manager.get_register_by_user_id(query):
         raise HTTPException(status_code=404, detail="Register not found")
     db_manager.delete_register(Token)
-    return JSONResponse(content={"message": "Register deleted"}, status_code=status.HTTP_200_OK)
+    return JSONResponse(
+        content={"message": "Register deleted"}, status_code=status.HTTP_200_OK
+    )

@@ -485,7 +485,7 @@ if __name__ == "__main__":
     # db_track_and_trace.get_attributes_example()
 
     # kafka
-    db_track_and_trace.data_consume(db_manager, "localhost", "29092", "alo")
+    # db_track_and_trace.data_consume(db_manager, "localhost", "29092", "alo")
     # Kết thúc kết nối
     db_manager.close_connection()
     db_track_and_trace.close_connection()

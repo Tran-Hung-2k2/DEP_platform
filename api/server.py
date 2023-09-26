@@ -8,9 +8,6 @@ import device, register, user
 
 
 app = FastAPI()
-db_manager = DatabaseManager()
-db_manager.connect_to_database()
-
 app.include_router(user.router)
 app.include_router(register.router)
 app.include_router(device.router)
