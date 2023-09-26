@@ -1,8 +1,9 @@
 # database server here
 import psycopg2
-import json
 import os
 import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "."))
 from user_manager import UserManager
 from register_manager import RegisterManager
 from device_manager import DeviceManager
@@ -20,7 +21,29 @@ db_host = config["USER_DB_HOST"]
 db_port = config["USER_DB_PORT"]
 
 
-class DatabaseManage:
+def require_user_db_connection(func):
+    def wrapper(self, *args, **kwargs):
+        if self.current_db == "user_db":
+            return func(self, *args, **kwargs)
+        else:
+            print("Not connected to user_db database.")
+            return False
+
+    return wrapper
+
+
+def require_track_and_trace_connection(func):
+    def wrapper(self, *args, **kwargs):
+        if self.current_db == "track_and_trace":
+            return func(self, *args, **kwargs)
+        else:
+            print("Not connected to track_and_trace database.")
+            return False
+
+    return wrapper
+
+
+class DatabaseManager:
     def __init__(self, **kwargs):
         # Initialize database connection
         self.conn = psycopg2.connect(
@@ -92,141 +115,92 @@ class DatabaseManage:
             print("Connection closed")
 
     # Gọi các phương thức từ UserManager
+    @require_user_db_connection
     def create_user_table(self):
-        if self.current_db == "user_db":
-            return self.user_manager.create_user_table()
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.user_manager.create_user_table()
 
+    @require_user_db_connection
     def add_user(self, user_data):
-        if self.current_db == "user_db":
-            return self.user_manager.add_user(user_data)
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.user_manager.add_user(user_data)
 
+    @require_user_db_connection
     def get_user(self, user_id):
-        if self.current_db == "user_db":
-            return self.user_manager.get_user(user_id)
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.user_manager.get_user(user_id)
 
-    def update_user(self, user_id, new_data):
-        if self.current_db == "user_db":
-            return self.user_manager.update_user(user_id, new_data)
-        else:
-            print("Not connected to user_db database.")
-            return False
+    @require_user_db_connection
+    def get_user_by_username(self, user_name):
+        return self.user_manager.get_user_by_username(user_name)
 
+    @require_user_db_connection
+    def update_user_by_username(self, user_name, new_data):
+        return self.user_manager.update_user_by_username(user_name, new_data)
+
+    @require_user_db_connection
     def delete_user(self, user_id):
-        if self.current_db == "user_db":
-            return self.user_manager.delete_user(user_id)
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.user_manager.delete_user(user_id)
 
     # Gọi các phương thức từ DeviceManager
+    @require_user_db_connection
     def create_device_table(self):
-        if self.current_db == "user_db":
-            return self.device_manager.create_device_table()
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.device_manager.create_device_table()
 
+    @require_user_db_connection
     def add_device(self, device_data):
-        if self.current_db == "user_db":
-            return self.device_manager.add_device(device_data)
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.device_manager.add_device(device_data)
 
+    @require_user_db_connection
     def get_device(self, device_id):
-        if self.current_db == "user_db":
-            return self.device_manager.get_device(device_id)
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.device_manager.get_device(device_id)
 
+    @require_user_db_connection
+    def get_device_by_user(self, user_id):
+        return self.device_manager.get_device_by_user(user_id)
+
+    @require_user_db_connection
     def update_device(self, device_id, new_data):
-        if self.current_db == "user_db":
-            return self.device_manager.update_device(device_id, new_data)
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.device_manager.update_device(device_id, new_data)
 
+    @require_user_db_connection
     def delete_device(self, device_id):
-        if self.current_db == "user_db":
-            return self.device_manager.delete_device(device_id)
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.device_manager.delete_device(device_id)
 
     # Gọi các phương thức từ RegisterManager
+    @require_user_db_connection
     def create_register_table(self):
-        if self.current_db == "user_db":
-            return self.register_manager.create_register_table()
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.register_manager.create_register_table()
 
+    @require_user_db_connection
     def add_register(self, register_data):
-        if self.current_db == "user_db":
-            return self.register_manager.add_register(register_data)
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.register_manager.add_register(register_data)
 
-    def get_register(self, token):
-        if self.current_db == "user_db":
-            return self.register_manager.get_register(token)
-        else:
-            print("Not connected to user_db database.")
-            return False
+    @require_user_db_connection
+    def get_register_by_user_id(self, user_id):
+        return self.register_manager.get_register_by_user_id(user_id)
 
+    @require_user_db_connection
+    def update_register(self, token, new_data):
+        return self.register_manager.update_register(token, new_data)
+
+    @require_user_db_connection
     def delete_register(self, token):
-        if self.current_db == "user_db":
-            return self.register_manager.delete_register(token)
-        else:
-            print("Not connected to user_db database.")
-            return False
+        return self.register_manager.delete_register(token)
 
     # Gọi các phương thức từ AttributesManager
+    @require_track_and_trace_connection
     def create_attributes_table(self):
-        if self.current_db == "track_and_trace":
-            return self.attributes_manager.create_attributes_table()
-        else:
-            print("Not connected to track_and_trace database.")
-            return False
+        return self.attributes_manager.create_attributes_table()
 
+    @require_track_and_trace_connection
     def add_attributes(self, attributes_data):
-        if self.current_db == "track_and_trace":
-            return self.attributes_manager.add_attributes(attributes_data)
-        else:
-            print("Not connected to track_and_trace database.")
-            return False
+        return self.attributes_manager.add_attributes(attributes_data)
 
-    def get_attributes(self, attribute_id):
-        if self.current_db == "track_and_trace":
-            return self.attributes_manager.get_attributes(attribute_id)
-        else:
-            print("Not connected to track_and_trace database.")
-            return False
+    @require_track_and_trace_connection
+    def add_batch_attributes(self, batch_attributes_data=None):
+        return self.attributes_manager.add_batch_attributes(batch_attributes_data)
 
-    def update_attributes(self, attribute_id, new_data):
-        if self.current_db == "track_and_trace":
-            return self.attributes_manager.update_attributes(attribute_id, new_data)
-        else:
-            print("Not connected to track_and_trace database.")
-            return False
-
-    def delete_attributes(self, attribute_id):
-        if self.current_db == "track_and_trace":
-            return self.attributes_manager.delete_attributes(attribute_id)
-        else:
-            print("Not connected to track_and_trace database.")
-            return False
+    @require_track_and_trace_connection
+    def get_attributes_by_id(self, attribute_id):
+        return self.attributes_manager.get_attributes_by_id(attribute_id)
 
     def data_consume(self, host, port, topic):
         # Khởi tạo Kafka Client
@@ -257,150 +231,176 @@ class DatabaseManage:
     def data_preprocess(self, data):
         if data.get("Problem") == "TrackAndTrace" :
             pass
+    def create_user_table_example(self):
+        # Tạo bảng "user" nếu nó chưa tồn tại
+        if self.create_user_table():
+            print("User table created successfully.")
+        else:
+            print("Error creating user table.")
+
+    def add_user_example(self):
+        # Thêm người dùng mới
+        new_user_data = {
+            "UserID": "0123456789",
+            "Username": "JohnDoe",
+            "Password": "password123",
+            "Gender": "Male",
+            "Email": "john@example.com",
+            "DateOfBirth": "1990-01-01",
+            "PhoneNumber": "1234567890",
+            "Balance": 1000.0,
+            "UserRole": "User",
+        }
+        if self.add_user(new_user_data):
+            print("User added successfully.")
+        else:
+            print("Error adding user.")
+
+    def get_user_by_username_example(self):
+        # Lấy thông tin người dùng bằng tên người dùng
+        user = self.get_user_by_username("JohnDoe")
+        if user:
+            print(f"User found: {user}")
+        else:
+            print("User not found.")
+
+    def update_user_example(self):
+        # Cập nhật thông tin người dùng
+        user_name_to_update = "JohnDoe"
+        updated_user_data = {
+            "Password": "newpassword123",
+            "Gender": "Female",
+            "Email": "newemail@example.com",
+            "DateOfBirth": "1990-01-01",
+            "PhoneNumber": "9876543210",
+            "Balance": 1500.0,
+            "UserRole": "Admin",
+        }
+
+        if self.update_user_by_username(user_name_to_update, updated_user_data):
+            print("User updated successfully.")
+        else:
+            print("Error updating user.")
+
+    def create_device_table_example(self):
+        # Tạo bảng "device" nếu nó chưa tồn tại
+        if self.create_device_table():
+            print("Device table created successfully.")
+        else:
+            print("Error creating device table.")
+
+    def add_device_example(self):
+        # Thêm thiết bị mới
+        new_device_data = {
+            "DeviceID": "device123",
+            "UserID": "0123456789",
+            "DeviceName": "MyDevice",
+            "PlateNo": "ABC123",
+        }
+
+        if self.add_device(new_device_data):
+            print("Device added successfully.")
+        else:
+            print("Error adding device.")
+
+    def get_device_example(self):
+        # Lấy thông tin thiết bị bằng ID thiết bị
+        device_id_to_get = "device123"
+        device = self.get_device(device_id_to_get)
+        if device:
+            print(f"Device found: {device}")
+        else:
+            print("Device not found.")
+
+    def update_device_example(self):
+        device_id_to_update = "device123"
+        updated_device_data = {
+            "DeviceName": "UpdatedDeviceName",
+        }
+
+        if self.update_device(device_id_to_update, updated_device_data):
+            print("Device updated successfully.")
+        else:
+            print("Error updating device.")
+
+    def delete_device_example(self):
+        # Xóa thiết bị bằng ID thiết bị
+        device_id_to_delete = "device123"
+        if self.delete_device(device_id_to_delete):
+            print("Device deleted successfully.")
+        else:
+            print("Error deleting device.")
+
+    def create_register_table_example(self):
+        # Tạo bảng "register" nếu nó chưa tồn tại
+        if self.create_register_table():
+            print("Register table created successfully.")
+        else:
+            print("Error creating register table.")
+
+    def add_register_example(self):
+        new_register_data = {
+            "Token": "token123",
+            "UserID": "0123456789",
+            "Problem": "Some problem description",
+        }
+
+        if self.add_register(new_register_data):
+            print("Register added successfully.")
+        else:
+            print("Error adding register.")
+
+    def get_register_example(self):
+        token_to_get = "token123"
+        register = self.get_register_by_user_id(token_to_get)  # Gọi từ RegisterManager
+        if register:
+            print(f"Register found: {register}")
+        else:
+            print("Register not found.")
+
+    def delete_register_example(self):
+        # Xóa đăng ký bằng token
+        token_to_delete = "token123"
+        if self.delete_register(token_to_delete):
+            print("Register deleted successfully.")
+        else:
+            print("Error deleting register.")
+
+    def delete_user_example(self):
+        # Xóa người dùng bằng ID người dùng
+        user_id_to_delete = "0123456789"
+        if self.delete_user(user_id_to_delete):
+            print("User deleted successfully.")
+        else:
+            print("Error deleting user.")
+
 
 if __name__ == "__main__":
-    db_manager = DatabaseManage()
-    db_manager.connect_to_database()
+    db_manager = DatabaseManager()
+    db_manager.connect_to_database(current_db_name="user_db")
 
-    # Tạo bảng User
-    db_manager.create_user_table()
+    # Gọi các ví dụ tương ứng cho các hàm
+    # User
+    db_manager.create_user_table_example()
+    db_manager.add_user_example()
+    db_manager.get_user_by_username_example()
+    db_manager.update_user_example()
 
-    # Ví dụ quản lý User
-    new_user_data = (
-        "user123",
-        "JohnDoe",
-        "password123",
-        "Male",
-        "john@example.com",
-        "1990-01-01",
-        "1234567890",
-        1000.0,
-        "User",
-    )
+    # Device
+    db_manager.create_device_table_example()
+    db_manager.add_device_example()
+    db_manager.get_device_example()
+    db_manager.update_device_example()
+    db_manager.delete_device_example()
 
-    if db_manager.add_user(new_user_data):
-        print("User added successfully.")
+    # Register
+    db_manager.create_register_table_example()
+    db_manager.add_register_example()
+    db_manager.get_register_example()
+    db_manager.delete_register_example()
 
-    user_id_to_get = "user123"
-    user = db_manager.get_user(user_id_to_get)
-    if user:
-        print(f"User found: {user}")
+    # Delete user
+    db_manager.delete_user_example()
 
-    user_id_to_update = "user123"
-    updated_user_data = (
-        "JohnDoeUpdated",
-        "newpassword123",
-        "Female",
-        "newemail@example.com",
-        "1990-01-01",
-        "9876543210",
-        1500.0,
-        "Admin",
-    )
-
-    if db_manager.update_user(user_id_to_update, updated_user_data):
-        print("User updated successfully.")
-
-    # Tạo bảng Device
-    db_manager.create_device_table()
-
-    # Ví dụ quản lý Device
-    new_device_data = (
-        "device123",
-        "user123",
-        "MyDevice",
-        "ABC123",
-    )
-
-    if db_manager.add_device(new_device_data):
-        print("Device added successfully.")
-
-    device_id_to_get = "device123"
-    device = db_manager.get_device(device_id_to_get)
-    if device:
-        print(f"Device found: {device}")
-
-    device_id_to_update = "device123"
-    updated_device_data = (
-        "UpdatedDeviceName",
-        "XYZ789",
-    )
-
-    if db_manager.update_device(device_id_to_update, updated_device_data):
-        print("Device updated successfully.")
-
-    device_id_to_delete = "device123"
-    if db_manager.delete_device(device_id_to_delete):
-        print("Device deleted successfully.")
-
-    # Tạo bảng Register
-    db_manager.create_register_table()
-
-    # Ví dụ quản lý Register
-    new_register_data = (
-        "token123",
-        "user123",
-    )
-
-    if db_manager.add_register(new_register_data):
-        print("Register added successfully.")
-
-    token_to_get = "token123"
-    register = db_manager.get_register(token_to_get)
-    if register:
-        print(f"Register found: {register}")
-
-    token_to_delete = "token123"
-    if db_manager.delete_register(token_to_delete):
-        print("Register deleted successfully.")
-
-    user_id_to_delete = "user123"
-    if db_manager.delete_user(user_id_to_delete):
-        print("User deleted successfully.")
-
-    db_manager.connect_to_database(current_db_name="track_and_trace")
-
-    # Tạo bảng Attributes
-    db_manager.create_attributes_table()
-
-    # Example: Add Attributes
-    new_attributes_data = (
-        "device123",
-        "2023-09-24 10:30:00",
-        "running",
-        60.0,
-        90.0,
-        45.123456,
-        -78.987654,
-        json.dumps({"info1": "value1", "info2": "value2"}),
-    )
-    if db_manager.add_attributes(new_attributes_data):
-        print("Attributes added successfully.")
-
-    # Example: Get Attributes by ID
-    attribute_id_to_get = 1  # Replace with the desired attribute ID
-    attributes = db_manager.get_attributes(attribute_id_to_get)
-    if attributes:
-        print(f"Attributes found: {attributes}")
-
-    # Example: Update Attributes
-    attribute_id_to_update = 1  # Replace with the desired attribute ID
-    updated_attributes_data = (
-        "device123",
-        "2023-09-24 11:45:00",
-        "stopped",
-        0.0,
-        180.0,
-        46.987654,
-        -77.123456,
-        json.dumps({"info3": "value3", "info4": "value4"}),
-    )
-    if db_manager.update_attributes(attribute_id_to_update, updated_attributes_data):
-        print("Attributes updated successfully.")
-
-    # Example: Delete Attributes
-    attribute_id_to_delete = 1
-    if db_manager.delete_attributes(attribute_id_to_delete):
-        print("Attributes deleted successfully.")
-
+    # Kết thúc kết nối
     db_manager.close_connection()

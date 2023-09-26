@@ -1,62 +1,80 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, APIRouter
+from pydantic import BaseModel, Field
 from typing import List, Optional
+import sys
+import os
+import string
+import random
+import time
 
-# Khởi tạo ứng dụng FastAPI
-app = FastAPI()
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from db_manager.db_manager import DatabaseManager
 
-# Dữ liệu mẫu cho Entity Description (thường được lưu trữ trong cơ sở dữ liệu)
-entity_db = {}
-
-
-# Mô hình Pydantic cho Entity Description
-class EntityDescription(BaseModel):
-    DeviceID: str
-    UserID: str
-    DeviceName: str
-    PlateNo: str
-
-
-# API endpoint để tạo Entity Description
-@app.post("/entities/", response_model=EntityDescription)
-def create_entity(entity: EntityDescription):
-    if entity.DeviceID in entity_db:
-        raise HTTPException(
-            status_code=400,
-            detail="Device with this DeviceID already exists",
-        )
-    entity_db[entity.DeviceID] = entity
-    return entity
+router = APIRouter(
+    prefix="/device",
+    tags=["devices"],
+    responses={404: {"description": "Not found"}},
+)
+db_manager = DatabaseManager()
+db_manager.connect_to_database()
 
 
-# API endpoint để lấy danh sách Entity Descriptions
-@app.get("/entities/", response_model=List[EntityDescription])
-def get_entities():
-    return list(entity_db.values())
+# Mô hình Pydantic cho Device
+class Device(BaseModel):
+    DeviceID: str = Field(max_length=15)
+    Username: str = Field(max_length=15)
+    DeviceName: str = Field(max_length=255)
+    PlateNo: str = Field(max_length=15)
 
 
-# API endpoint để lấy thông tin Entity Description dựa trên DeviceID
-@app.get("/entities/{DeviceID}", response_model=EntityDescription)
-def get_entity(DeviceID: str):
-    entity = entity_db.get(DeviceID)
+def generate_device_id(length=15):
+    characters = string.ascii_letters + string.digits
+    seed = int(time.time() * 1000)
+    random.seed(seed)
+    user_id = "".join(random.choice(characters) for _ in range(length))
+    return user_id
+
+
+# API endpoint để tạo Device
+@router.post("/create", response_model=Device)
+def create_entity(post: Device):
+    entity = db_manager.get_user(post.Username)
     if entity is None:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
+        raise HTTPException(status_code=404, detail="User not found")
+    device_id = generate_device_id()
+    device_data = {
+        "DeviceID": device_id,
+        "UserID": entity.UserID,
+        "DeviceName": post.DeviceName,
+        "PlateNo": post.PlateNo,
+    }
+    db_manager.add_device(device_data)
+    return device_data
+
+
+# API endpoint để lấy thông tin Device dựa trên DeviceID
+@router.get("/get/{DeviceID}", response_model=Device)
+def get_entity(DeviceID: str):
+    entity = db_manager.get_device(DeviceID)
+    if entity is None:
+        raise HTTPException(status_code=404, detail="Device not found")
     return entity
 
 
-# API endpoint để cập nhật thông tin Entity Description dựa trên DeviceID
-@app.put("/entities/{DeviceID}", response_model=EntityDescription)
-def update_entity(DeviceID: str, updated_entity: EntityDescription):
-    if DeviceID not in entity_db:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
-    entity_db[DeviceID] = updated_entity
-    return updated_entity
+# API endpoint để cập nhật thông tin Device dựa trên UserID
+@router.put("/gets/{UserID}", response_model=Device)
+def get_entity_many(UserID: str):
+    entity = db_manager.get_device_by_user(UserID)
+    if entity is None:
+        raise HTTPException(status_code=404, detail="Device not found")
+    return entity
 
 
-# API endpoint để xóa Entity Description dựa trên DeviceID
-@app.delete("/entities/{DeviceID}")
+# API endpoint để xóa Device dựa trên DeviceID
+@router.delete("/delete/{DeviceID}")
 def delete_entity(DeviceID: str):
-    if DeviceID not in entity_db:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
-    del entity_db[DeviceID]
-    return {"message": "Entity Description deleted"}
+    entity = db_manager.get_device(DeviceID)
+    if entity is None:
+        raise HTTPException(status_code=404, detail="Device not found")
+    db_manager.delete_device(DeviceID)
+    return {"message": "Device deleted"}

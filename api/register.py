@@ -1,25 +1,34 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, APIRouter
+from pydantic import BaseModel, Field
 from typing import List
 import jwt
+import sys
+import os
 from jwt import PyJWTError
 
-# Khởi tạo ứng dụng FastAPI
-app = FastAPI()
-
-# Dữ liệu mẫu cho Entity Description (thường được lưu trữ trong cơ sở dữ liệu)
-entity_db = {}
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from db_manager.db_manager import DatabaseManager
 
 
-# Mô hình Pydantic cho Entity Description
-class EntityDescription(BaseModel):
-    Token: str
-    UserID: str
-    Service: str
+router = APIRouter(
+    prefix="/register",
+    tags=["registers"],
+    responses={404: {"description": "Not found"}},
+)
+
+db_manager = DatabaseManager()
+db_manager.connect_to_database()
 
 
-# Secret key để mã hóa và giải mã token (bạn cần giữ nó bí mật và an toàn)
-SECRET_KEY = "tranhung"
+# Mô hình Pydantic cho Register
+class Register(BaseModel):
+    Token: str = Field(max_length=255)
+    Username: str = Field(max_length=10)
+    Problem: str = Field(max_length=255)
+
+
+# Secret key để mã hóa và giải mã token
+SECRET_KEY = "SECRETKEY"
 
 
 # Hàm tạo token
@@ -37,50 +46,33 @@ def decode_token(token: str):
         return None
 
 
-# API endpoint để tạo Entity Description và tạo token cho người dùng
-@app.post("/entities/", response_model=EntityDescription)
-def create_entity(entity: EntityDescription):
-    if entity.UserID in entity_db:
-        raise HTTPException(
-            status_code=400,
-            detail="Entity with this UserID already exists",
-        )
-    # Tạo token
-    token_data = {"UserID": entity.UserID, "Service": entity.Service}
-    token = create_token(token_data)
-    entity.Token = token
-    entity_db[entity.UserID] = entity
-    return entity
-
-
-# API endpoint để lấy danh sách Entity Descriptions
-@app.get("/entities/", response_model=List[EntityDescription])
-def get_entities():
-    return list(entity_db.values())
-
-
-# API endpoint để lấy thông tin Entity Description dựa trên UserID
-@app.get("/entities/{UserID}", response_model=EntityDescription)
-def get_entity(UserID: str):
-    entity = entity_db.get(UserID)
+# API endpoint để tạo Register và tạo token cho người dùng
+@router.post("/create", response_model=Register)
+def create_entity(post: Register):
+    entity = db_manager.get_user(post.Username)
     if entity is None:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
-    return entity
+        raise HTTPException(status_code=404, detail="User not found")
+    register_data = {"UserID": entity.UserID, "Problem": post.Problem}
+    token = create_token(register_data)
+    register_data["Token"] = token
+    db_manager.add_register(register_data)
+    return register_data
 
 
-# API endpoint để cập nhật thông tin Entity Description dựa trên UserID
-@app.put("/entities/{UserID}", response_model=EntityDescription)
-def update_entity(UserID: str, updated_entity: EntityDescription):
-    if UserID not in entity_db:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
-    entity_db[UserID] = updated_entity
-    return updated_entity
+# API endpoint để lấy thông tin Register dựa trên UserID
+@router.get("/get/{Username}", response_model=Register)
+def get_entity(Username: str):
+    user_data = db_manager.get_user(Username)
+    if user_data is None:
+        raise HTTPException(status_code=404, detail="Register not found")
+    register_data = db_manager.get_register_by_user_id(user_data.UserID)
+    return register_data
 
 
-# API endpoint để xóa Entity Description dựa trên UserID
-@app.delete("/entities/{UserID}")
-def delete_entity(UserID: str):
-    if UserID not in entity_db:
-        raise HTTPException(status_code=404, detail="Entity Description not found")
-    del entity_db[UserID]
-    return {"message": "Entity Description deleted"}
+# API endpoint để xóa Register dựa trên UserID
+@router.delete("/delete/{Token}")
+def delete_entity(Token: str, query: str):
+    if not db_manager.get_register_by_user_id(query):
+        raise HTTPException(status_code=404, detail="Register not found")
+    db_manager.delete_register(Token)
+    return {"message": "Register deleted"}
