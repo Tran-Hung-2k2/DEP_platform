@@ -11,7 +11,7 @@ from db_manager.db_manager import DatabaseManager
 
 
 router = APIRouter(
-    prefix="/register",
+    prefix="/v1/register",
     tags=["registers"],
     responses={404: {"description": "Not found"}},
 )
@@ -46,8 +46,9 @@ def decode_token(token: str):
         return None
 
 
+
 # API endpoint để tạo Register và tạo token cho người dùng
-@router.post("/create", response_model=Register)
+@router.post("/", response_model=Register)
 def create_entity(post: Register):
     entity = db_manager.get_user(post.Username)
     if entity is None:
@@ -60,7 +61,7 @@ def create_entity(post: Register):
 
 
 # API endpoint để lấy thông tin Register dựa trên UserID
-@router.get("/get/{Username}", response_model=Register)
+@router.get("/{Username}", response_model=Register)
 def get_entity(Username: str):
     user_data = db_manager.get_user(Username)
     if user_data is None:
@@ -70,7 +71,7 @@ def get_entity(Username: str):
 
 
 # API endpoint để xóa Register dựa trên UserID
-@router.delete("/delete/{Token}")
+@router.delete("/{Token}")
 def delete_entity(Token: str, query: str):
     if not db_manager.get_register_by_user_id(query):
         raise HTTPException(status_code=404, detail="Register not found")

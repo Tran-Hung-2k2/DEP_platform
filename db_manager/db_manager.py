@@ -225,15 +225,17 @@ class DatabaseManager:
         # Bắt đầu lắng nghe các message từ topic
         for message in consumer:
             if message is not None:
-                data = json.loads(message.value.decode("utf-8"))
-                # self.data_preprocess(data)
-
+                data = json.loads(message.value.decode('utf-8'))
+                if self.data_preprocess(data):
+                    self.add_attributes(data)
+                
         # Đóng kết nối sau khi hoàn thành
         consumer.stop()
 
     def data_preprocess(self, data):
-        if data.get("Problem") == "TrackAndTrace":
-            pass
+        if data.get("Problem") == "TrackAndTrace" :
+            device_id = data.get("DeviceID")
+            return self.get_device(device_id) != None 
 
     def create_user_table_example(self):
         # Tạo bảng "user" nếu nó chưa tồn tại
