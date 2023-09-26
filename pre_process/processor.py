@@ -3,12 +3,14 @@ import psycopg2
 import json
 import os
 import sys
-from attributes_manager import AttributesManager
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "."))
+
+from db_manager.attributes_manager import AttributesManager
 
 """
 put config here
 """
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from configs.config import config
 
 class Preprocessing():

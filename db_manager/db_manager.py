@@ -2,6 +2,7 @@
 import psycopg2
 import os
 import sys
+import json
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(os.path.join(os.path.dirname(__file__), "."))
 from user_manager import UserManager

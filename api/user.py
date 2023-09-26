@@ -15,7 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from db_manager.db_manager import DatabaseManager
 
 router = APIRouter(
-    prefix="/user",
+    prefix="/v1/user",
     tags=["users"],
     responses={404: {"description": "Not found"}},
 )
@@ -71,38 +71,36 @@ def generate_user_id(length=10):
     return user_id
 
 
-@router.get("/")
-def admin_page():
-    return {"message": "Hello World"}
 
 
-# API endpoint để tạo User
-@router.post("/create", response_model=User)
-def create_entity(post: User):
-    db_manager.add_user(post.dict())
-    return post
+
+# # API endpoint để tạo User
+# @router.post("/create", response_model=User)
+# def create_entity(post: User):
+#     db_manager.add_user(post.dict())
+#     return post
 
 
 # API endpoint để lấy thông tin User dựa trên Username
-@router.get("/get/{Username}", response_model=User)
+@router.get("/{Username}", response_model=User)
 def get_entity(Username: str):
-    entity = db_manager.get_user(Username)
+    entity = db_manager.get_user_by_username(Username)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
     return entity
 
 
 # API endpoint để cập nhật thông tin User dựa trên Username
-@router.put("/put/{Username}", response_model=User)
+@router.put("/{Username}", response_model=User)
 def update_entity(Username: str, post: User):
-    if db_manager.update_user(Username, post):
+    if db_manager.update_user_by_username(Username, post):
         return post
     else:
         raise HTTPException(status_code=404, detail="Error Updating")
 
 
 # API endpoint để xóa User dựa trên Username
-@router.delete("/entities/{Username}")
+@router.delete("/{Username}")
 def delete_entity(Username: str):
     if db_manager.delete_user(Username):
         return {"message": "User deleted"}
@@ -111,7 +109,7 @@ def delete_entity(Username: str):
 
 
 # API endpoint để đăng ký người dùng
-@router.post("/signup", response_model=User)
+@router.post("/", response_model=User)
 def signup(post: UserSignup):
     if db_manager.get_user_by_username(post.Username) is not None:
         raise HTTPException(
@@ -127,7 +125,6 @@ def signup(post: UserSignup):
     )
     db_manager.add_user(new_user_data)
     new_user_data["DateOfBirth"] = new_user_data["DateOfBirth"].isoformat()
-    print(new_user_data)
     return JSONResponse(content=new_user_data, status_code=status.HTTP_200_OK)
 
 
