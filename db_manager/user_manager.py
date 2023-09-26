@@ -63,7 +63,19 @@ class UserManager:
             self.cursor.execute(select_query, (user_id,))
             user = self.cursor.fetchone()
             if user:
-                return user
+                # Chuyển tuple thành dictionary
+                user_dict = {
+                    "UserID": user[0],
+                    "Username": user[1],
+                    "Password": user[2],
+                    "Gender": user[3],
+                    "Email": user[4],
+                    "DateOfBirth": user[5],
+                    "PhoneNumber": user[6],
+                    "Balance": user[7],
+                    "UserRole": user[8],
+                }
+                return user_dict
             else:
                 print("User not found.")
                 return None
@@ -78,7 +90,19 @@ class UserManager:
             self.cursor.execute(select_query, (user_name,))
             user = self.cursor.fetchone()
             if user:
-                return user
+                # Chuyển tuple thành dictionary
+                user_dict = {
+                    "UserID": user[0],
+                    "Username": user[1],
+                    "Password": user[2],
+                    "Gender": user[3],
+                    "Email": user[4],
+                    "DateOfBirth": user[5],
+                    "PhoneNumber": user[6],
+                    "Balance": user[7],
+                    "UserRole": user[8],
+                }
+                return user_dict
             else:
                 print("User not found.")
                 return None

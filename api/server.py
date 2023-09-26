@@ -20,12 +20,11 @@ db_manager = DatabaseManager()
 db_manager.connect_to_database()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello Bigger Applications!"}
-
-
 if __name__ == "__main__":
+    import threading
+    kafka_thread = threading.Thread(target=db_manager.data_consume("localhost",29092,"alo"))
+    kafka_thread.start()
+
     uvicorn.run(
         "server:app",
         host="127.0.0.1",
