@@ -37,7 +37,7 @@ class UserSignup(UserLogin):
     Email: str = Field(max_length=255)
     Gender: str
     Email: str = Field(max_length=255)
-    DateOfBirth: date
+    DateOfBirth: str
     PhoneNumber: str = Field(max_length=20)
 
 
@@ -71,16 +71,6 @@ def generate_user_id(length=10):
     return user_id
 
 
-
-
-
-# # API endpoint để tạo User
-# @router.post("/create", response_model=User)
-# def create_entity(post: User):
-#     db_manager.add_user(post.dict())
-#     return post
-
-
 # API endpoint để lấy thông tin User dựa trên Username
 @router.get("/{Username}", response_model=User)
 def get_entity(Username: str):
@@ -88,7 +78,8 @@ def get_entity(Username: str):
     print(entity)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return entity
+    entity["DateOfBirth"] = entity["DateOfBirth"].isoformat()
+    return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
 
 
 # API endpoint để cập nhật thông tin User dựa trên Username

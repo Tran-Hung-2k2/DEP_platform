@@ -20,11 +20,6 @@ db_manager = DatabaseManager()
 db_manager.connect_to_database()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello Bigger Applications!"}
-
-
 if __name__ == "__main__":
     uvicorn.run(
         "server:app",

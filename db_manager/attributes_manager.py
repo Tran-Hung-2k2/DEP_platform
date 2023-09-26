@@ -2,7 +2,6 @@ import psycopg2
 from psycopg2 import sql
 import json
 
-import pandas as pd
 
 class AttributesManager:
     def __init__(self, conn, cursor):
@@ -138,11 +137,15 @@ class AttributesManager:
                 ):
                     start, end = value
                     conditions.append(
-                        sql.SQL("{} BETWEEN %s AND %s").format(sql.Identifier(field.lower()))  # Chuyển tên cột thành chữ thường ở đây
+                        sql.SQL("{} BETWEEN %s AND %s").format(
+                            sql.Identifier(field.lower())
+                        )  # Chuyển tên cột thành chữ thường ở đây
                     )
                     values.extend([start, end])
                 else:
-                    conditions.append(sql.SQL("{} = %s").format(sql.Identifier(field.lower())))  # Chuyển tên cột thành chữ thường ở đây
+                    conditions.append(
+                        sql.SQL("{} = %s").format(sql.Identifier(field.lower()))
+                    )  # Chuyển tên cột thành chữ thường ở đây
                     values.append(value)
 
             select_query = sql.SQL('SELECT * FROM "Attributes" WHERE {}').format(
@@ -161,4 +164,3 @@ class AttributesManager:
             print(f"Error getting attributes: {e}")
             self.conn.rollback()
             return None
-
