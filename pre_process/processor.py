@@ -29,9 +29,7 @@ class Preprocessing():
             host=db_host,
             port=db_port,
         )
-        self.cursor = None
         self.current_db = None
-        self.df = None
 
     def configurations(self):
         pass
@@ -66,23 +64,44 @@ class Preprocessing():
             self.conn.close()
             print("Connection closed")
 
+
+    def get_all_data(self):
+        sql_query = f"SELECT * FROM {self.current_db}"
+        df = pd.read_sql_query(sql_query, self.conn)
+        if df.empty:
+            print("No data matched")
+            return False
+        else:
+            return df        
+
     def get_data_by_user_id(self, user_id):
         sql_query = f"SELECT * FROM {self.current_db} WHERE user_id ={user_id}"
-        self.df = pd.read_sql_query(sql_query, self.conn)
+        df = pd.read_sql_query(sql_query, self.conn)
+        if df.empty:
+            print("No data matched")
+            return False
+        else:
+            return df
 
     def get_data_by_device_id(self, device_id):
         sql_query = f"SELECT * FROM {self.current_db} WHERE user_id ={device_id}"
-        self.df = pd.read_sql_query(sql_query, self.conn)
+        df = pd.read_sql_query(sql_query, self.conn)
+        if df.empty:
+            print("No data matched")
+            return False
+        else:
+            return df
         
     def get_data_by_filter(self, filter_data=None):
         if filter_data is None:
             print("Filter data must be provided.")
             return None
         try:
+            df_filter = pd.DataFrame(filter_data.items(), columns=["field", "value"])
             conditions = []
-            values = []
-            for field, value in filter_data.items():
-                # Kiểm tra nếu trường là "Timestamp" và giá trị là một tuple (start, end)
+            for _, row in df_filter.iterrows():
+                field = row["field"]
+                value = row["value"]
                 if (
                     field == "Timestamp"
                     and isinstance(value, tuple)
@@ -90,29 +109,20 @@ class Preprocessing():
                 ):
                     start, end = value
                     conditions.append(
-                        sql.SQL("{} BETWEEN %s AND %s").format(
-                            sql.Identifier(field.lower())
-                        )  # Chuyển tên cột thành chữ thường ở đây
+                        f"{field.lower()} BETWEEN {start} AND {end}"
                     )
-                    values.extend([start, end])
                 else:
                     conditions.append(
-                        sql.SQL("{} = %s").format(sql.Identifier(field.lower()))
-                    )  # Chuyển tên cột thành chữ thường ở đây
-                    values.append(value)
-
-            select_query = sql.SQL('SELECT * FROM "Attributes" WHERE {}').format(
-                sql.SQL(" AND ").join(conditions)
-            )
-
-            self.cursor.execute(select_query, values)
-            attributes = self.cursor.fetchall()
-
-            if attributes:
-                return attributes
+                        f"{field.lower()} = '{value}'"
+                    )
+            sql_query = f'SELECT * FROM "Attributes" WHERE {" AND ".join(conditions)}'
+            df = pd.read_sql_query(sql_query, self.conn)
+            if df.empty:
+                print("No data matched")
+                return False
             else:
-                print("Attributes not found.")
-                return None
+                return df
+
         except psycopg2.Error as e:
             print(f"Error getting attributes: {e}")
             self.conn.rollback()
@@ -122,9 +132,6 @@ class Preprocessing():
     def delete_something(self, params):
         pass
 
-    def data_preprocess(self, params):
-        pass
-    ...
 
 if __name__ == '__main__':
     # all of test case locate here

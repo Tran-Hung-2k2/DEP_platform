@@ -3,7 +3,7 @@ import random
 import string
 
 
-server_url = "http://localhost:8000/user_service/user/create"
+server_url = "http://localhost:8000/v1/user/"
 user_number=20
 # Function to generate random data for the user
 def generate_random_user_data():
