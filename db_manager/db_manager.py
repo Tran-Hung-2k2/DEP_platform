@@ -204,8 +204,7 @@ class DatabaseManager:
 
     def data_consume(self, host, port, topic):
         # Khởi tạo Kafka Client
-        client = KafkaClient(hosts=r'{host}:{port}')
-
+        client = KafkaClient(hosts=f'{host}:{port}')
         # Xác định Consumer Group và topic
         consumer_group_name = "my_consumer_group"
         topic_name = topic
@@ -224,6 +223,8 @@ class DatabaseManager:
                 data = json.loads(message.value.decode('utf-8'))
                 if self.data_preprocess(data):
                     self.add_attributes(data)
+                else:
+                    print("Falied Data")
                 
         # Đóng kết nối sau khi hoàn thành
         consumer.stop()
@@ -232,6 +233,7 @@ class DatabaseManager:
     def data_preprocess(self, data):
         if data.get("Problem") == "TrackAndTrace" :
             device_id = data.get("DeviceID")
+            print(device_id)
             return self.get_device(device_id) != None 
 
     def create_user_table_example(self):
@@ -394,16 +396,17 @@ if __name__ == "__main__":
     db_manager.add_device_example()
     db_manager.get_device_example()
     db_manager.update_device_example()
-    db_manager.delete_device_example()
+    # db_manager.delete_device_example()
 
-    # Register
-    db_manager.create_register_table_example()
-    db_manager.add_register_example()
-    db_manager.get_register_example()
-    db_manager.delete_register_example()
+    # # Register
+    # db_manager.create_register_table_example()
+    # db_manager.add_register_example()
+    # db_manager.get_register_example()
+    # db_manager.delete_register_example()
 
-    # Delete user
-    db_manager.delete_user_example()
-
+    # # Delete user
+    # # db_manager.delete_user_example()
+    #kafka
+    db_manager.data_consume("localhost",29092,"alo")
     # Kết thúc kết nối
     db_manager.close_connection()
