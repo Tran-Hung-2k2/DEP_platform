@@ -10,9 +10,9 @@ class RegisterManager:
     def create_register_table(self):
         create_table_query = """
         CREATE TABLE IF NOT EXISTS "register" (
-            Token CHAR(15) PRIMARY KEY,
-            UserID CHAR(10) REFERENCES "user" (UserID),
-            Problem VARCHAR(50)
+            token CHAR(15) PRIMARY KEY,
+            user_id CHAR(10) REFERENCES "user" (user_id),
+            problem VARCHAR(50)
         )
         """
         try:
@@ -29,13 +29,13 @@ class RegisterManager:
         try:
             # Tạo tuple từ các giá trị trích xuất
             data_tuple = (
-                register_data.get("Token"),
-                register_data.get("UserID"),
-                register_data.get("Problem"),
+                register_data.get("token"),
+                register_data.get("user_id"),
+                register_data.get("problem"),
             )
 
             insert_query = sql.SQL(
-                'INSERT INTO "register" (Token, UserID, Problem) VALUES (%s, %s, %s)'
+                'INSERT INTO "register" (token, user_id, problem) VALUES (%s, %s, %s)'
             )
             self.cursor.execute(insert_query, data_tuple)
             self.conn.commit()
@@ -47,7 +47,7 @@ class RegisterManager:
 
     def get_register(self, token):
         try:
-            select_query = sql.SQL('SELECT * FROM "register" WHERE Token = %s')
+            select_query = sql.SQL('SELECT * FROM "register" WHERE token = %s')
             self.cursor.execute(select_query, (token,))
             register_row = self.cursor.fetchone()
 
@@ -56,16 +56,16 @@ class RegisterManager:
                 register_dict = dict(zip(columns, register_row))
                 return register_dict
             else:
-                print("Register not found for the specified Token.")
+                print("Register not found for the specified token.")
                 return None
         except psycopg2.Error as e:
-            print(f"Error getting register by Token: {e}")
+            print(f"Error getting register by token: {e}")
             self.conn.rollback()
             return None
 
     def get_register_by_user_id(self, user_id):
         try:
-            select_query = sql.SQL('SELECT * FROM "register" WHERE UserID = %s')
+            select_query = sql.SQL('SELECT * FROM "register" WHERE user_id = %s')
             self.cursor.execute(select_query, (user_id,))
             register_rows = self.cursor.fetchall()
 
@@ -78,7 +78,7 @@ class RegisterManager:
 
             return register_list
         except psycopg2.Error as e:
-            print(f"Error getting registers by UserID: {e}")
+            print(f"Error getting registers by user_id: {e}")
             self.conn.rollback()
             return None
 
@@ -90,7 +90,7 @@ class RegisterManager:
 
             # Xử lý từng cặp key-value trong new_data
             for key, value in new_data.items():
-                if key not in ["Token"]:
+                if key not in ["token"]:
                     set_statements.append(f"{key} = %s")
                     update_values.append(value)
 
@@ -99,7 +99,7 @@ class RegisterManager:
 
             # Xây dựng câu truy vấn SQL
             update_query = (
-                f'UPDATE "register" SET {", ".join(set_statements)} WHERE Token = %s'
+                f'UPDATE "register" SET {", ".join(set_statements)} WHERE token = %s'
             )
 
             # Thực hiện câu truy vấn cập nhật
@@ -113,7 +113,7 @@ class RegisterManager:
 
     def delete_register(self, token):
         try:
-            delete_query = sql.SQL('DELETE FROM "register" WHERE Token = %s')
+            delete_query = sql.SQL('DELETE FROM "register" WHERE token = %s')
             self.cursor.execute(delete_query, (token,))
             self.conn.commit()
             return True

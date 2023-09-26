@@ -10,15 +10,15 @@ class UserManager:
     def create_user_table(self):
         create_table_query = """
         CREATE TABLE IF NOT EXISTS "user" (
-            UserID CHAR(10) PRIMARY KEY,
-            Username VARCHAR(40) UNIQUE,
-            Password VARCHAR(255),
-            Gender VARCHAR(10),
-            Email VARCHAR(100),
-            DateOfBirth DATE,
-            PhoneNumber VARCHAR(15),
-            Balance DECIMAL(10, 2),
-            UserRole VARCHAR(50)
+            user_id CHAR(10) PRIMARY KEY,
+            user_name VARCHAR(40) UNIQUE,
+            password VARCHAR(255),
+            gender VARCHAR(10),
+            email VARCHAR(100),
+            date_of_birth DATE,
+            phone_number VARCHAR(15),
+            balance FLOAT,
+            role VARCHAR(50)
         );
         """
         try:
@@ -35,19 +35,19 @@ class UserManager:
         try:
             # Chuyển đổi từ dictionary thành tuple
             data_tuple = (
-                user_data.get("UserID"),
-                user_data.get("Username"),
-                user_data.get("Password"),
-                user_data.get("Gender"),
-                user_data.get("Email"),
-                user_data.get("DateOfBirth"),
-                user_data.get("PhoneNumber"),
-                user_data.get("Balance"),
-                user_data.get("UserRole"),
+                user_data.get("user_id"),
+                user_data.get("user_name"),
+                user_data.get("password"),
+                user_data.get("gender"),
+                user_data.get("email"),
+                user_data.get("date_of_birth"),
+                user_data.get("phone_number"),
+                user_data.get("balance"),
+                user_data.get("role"),
             )
 
             insert_query = sql.SQL(
-                'INSERT INTO "user" (UserID, Username, Password, Gender, Email, DateOfBirth, PhoneNumber, Balance, UserRole) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+                'INSERT INTO "user" (user_id, user_name, password, gender, email, date_of_birth, phone_number, balance, role) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
             )
             self.cursor.execute(insert_query, data_tuple)
             self.conn.commit()
@@ -59,7 +59,7 @@ class UserManager:
 
     def get_user(self, user_id):
         try:
-            select_query = sql.SQL('SELECT * FROM "user" WHERE UserID = %s')
+            select_query = sql.SQL('SELECT * FROM "user" WHERE user_id = %s')
             self.cursor.execute(select_query, (user_id,))
             user = self.cursor.fetchone()
             if user:
@@ -76,7 +76,7 @@ class UserManager:
 
     def get_user_by_username(self, user_name):
         try:
-            select_query = sql.SQL('SELECT * FROM "user" WHERE Username = %s')
+            select_query = sql.SQL('SELECT * FROM "user" WHERE user_name = %s')
             self.cursor.execute(select_query, (user_name,))
             user = self.cursor.fetchone()
 
@@ -85,7 +85,7 @@ class UserManager:
                 user_dict = dict(zip(columns, user))
                 return user_dict
             else:
-                print("User with Username =", user_name, "not found")
+                print("User with user_name =", user_name, "not found")
                 return None
         except psycopg2.Error as e:
             print(f"Error getting user: {e}")
@@ -100,7 +100,7 @@ class UserManager:
 
             # Xử lý từng cặp key-value trong new_data
             for key, value in new_data.items():
-                if key not in ["Username", "UserID"]:
+                if key not in ["user_name", "user_id"]:
                     set_statements.append(f"{key} = %s")
                     update_values.append(value)
 
@@ -109,7 +109,7 @@ class UserManager:
 
             # Xây dựng câu truy vấn SQL
             update_query = (
-                f'UPDATE "user" SET {", ".join(set_statements)} WHERE Username = %s'
+                f'UPDATE "user" SET {", ".join(set_statements)} WHERE user_name = %s'
             )
 
             # Thực hiện câu truy vấn cập nhật
@@ -123,7 +123,7 @@ class UserManager:
 
     def delete_user(self, user_id):
         try:
-            delete_query = sql.SQL('DELETE FROM "user" WHERE UserID = %s')
+            delete_query = sql.SQL('DELETE FROM "user" WHERE user_id = %s')
             self.cursor.execute(delete_query, (user_id,))
             self.conn.commit()
             return True

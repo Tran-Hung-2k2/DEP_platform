@@ -234,8 +234,8 @@ class DatabaseManager:
         consumer.stop()
 
     def data_preprocess(self, data):
-        if data.get("Problem") == "TrackAndTrace":
-            device_id = data.get("DeviceID")
+        if data.get("problem") == "track_and_trace":
+            device_id = data.get("device_id")
             print(device_id)
             return self.get_device(device_id) != None
 
@@ -249,15 +249,15 @@ class DatabaseManager:
     def add_user_example(self):
         # Thêm người dùng mới
         new_user_data = {
-            "UserID": "0123456789",
-            "Username": "JohnDoe",
-            "Password": "password123",
-            "Gender": "Male",
-            "Email": "john@example.com",
-            "DateOfBirth": "1990-01-01",
-            "PhoneNumber": "1234567890",
-            "Balance": 1000.0,
-            "UserRole": "User",
+            "user_id": "0123456789",
+            "user_name": "tranhung",
+            "password": "123456",
+            "gender": "Nam",
+            "email": "tranviethung912002@gmail.com",
+            "date_of_birth": "2002-09-01",
+            "phone_number": "0983394837",
+            "balance": 0,
+            "role": "User",
         }
         if self.add_user(new_user_data):
             print("User added successfully.")
@@ -266,7 +266,7 @@ class DatabaseManager:
 
     def get_user_by_username_example(self):
         # Lấy thông tin người dùng bằng tên người dùng
-        user = self.get_user_by_username("JohnDoe")
+        user = self.get_user_by_username("tranhung")
         if user:
             print(f"User found: {user}")
         else:
@@ -274,15 +274,11 @@ class DatabaseManager:
 
     def update_user_example(self):
         # Cập nhật thông tin người dùng
-        user_name_to_update = "JohnDoe"
+        user_name_to_update = "tranhung"
         updated_user_data = {
-            "Password": "newpassword123",
-            "Gender": "Female",
-            "Email": "newemail@example.com",
-            "DateOfBirth": "1990-01-01",
-            "PhoneNumber": "9876543210",
-            "Balance": 1500.0,
-            "UserRole": "Admin",
+            "password": "hung123",
+            "balance": 150,
+            "role": "Admin",
         }
 
         if self.update_user_by_username(user_name_to_update, updated_user_data):
@@ -300,10 +296,10 @@ class DatabaseManager:
     def add_device_example(self):
         # Thêm thiết bị mới
         new_device_data = {
-            "DeviceID": "device123",
-            "UserID": "0123456789",
-            "DeviceName": "MyDevice",
-            "PlateNo": "ABC123",
+            "device_id": "1111111111",
+            "user_id": "0123456789",
+            "device_name": "Xe tong thong",
+            "plate_no": "29-NG1234",
         }
 
         if self.add_device(new_device_data):
@@ -313,7 +309,7 @@ class DatabaseManager:
 
     def get_device_example(self):
         # Lấy thông tin thiết bị bằng ID thiết bị
-        device_id_to_get = "device123"
+        device_id_to_get = "1111111111"
         device = self.get_device(device_id_to_get)
         if device:
             print(f"Device found: {device}")
@@ -321,9 +317,9 @@ class DatabaseManager:
             print("Device not found.")
 
     def update_device_example(self):
-        device_id_to_update = "device123"
+        device_id_to_update = "1111111111"
         updated_device_data = {
-            "DeviceName": "UpdatedDeviceName",
+            "device_name": "Xe thu tuong",
         }
 
         if self.update_device(device_id_to_update, updated_device_data):
@@ -333,7 +329,7 @@ class DatabaseManager:
 
     def delete_device_example(self):
         # Xóa thiết bị bằng ID thiết bị
-        device_id_to_delete = "device123"
+        device_id_to_delete = "1111111111"
         if self.delete_device(device_id_to_delete):
             print("Device deleted successfully.")
         else:
@@ -348,9 +344,9 @@ class DatabaseManager:
 
     def add_register_example(self):
         new_register_data = {
-            "Token": "token123",
-            "UserID": "0123456789",
-            "Problem": "Some problem description",
+            "token": "hauidiuah1sdsdf",
+            "user_id": "0123456789",
+            "problem": "track_and_trace",
         }
 
         if self.add_register(new_register_data):
@@ -359,8 +355,8 @@ class DatabaseManager:
             print("Error adding register.")
 
     def get_register_example(self):
-        token_to_get = "token123"
-        register = self.get_register_by_user_id(token_to_get)  # Gọi từ RegisterManager
+        token_to_get = "hauidiuah1sdsdf"
+        register = self.get_register_by_user_id(token_to_get)
         if register:
             print(f"Register found: {register}")
         else:
@@ -368,7 +364,7 @@ class DatabaseManager:
 
     def delete_register_example(self):
         # Xóa đăng ký bằng token
-        token_to_delete = "token123"
+        token_to_delete = "hauidiuah1sdsdf"
         if self.delete_register(token_to_delete):
             print("Register deleted successfully.")
         else:
@@ -387,14 +383,14 @@ class DatabaseManager:
 
     def add_attributes_example(self):
         attributes_data = {
-            "DeviceID": "device123",
-            "Timestamp": "2023-09-24 10:30:00",
-            "Status": "running",
-            "Speed": 60.0,
-            "Direction": 90.0,
-            "Longitude": 45.123456,
-            "Latitude": -78.987654,
-            "Extrainfo": {"info1": "value1", "info2": "value2"},
+            "device_id": "1111111111",
+            "timestamp": "2023-09-26 10:53:00",
+            "status": "running",
+            "speed": 60.0,
+            "direction": 90.0,
+            "longitude": 45.123456,
+            "latitude": -78.987654,
+            "extra_info": {"info1": "value1", "info2": "value2"},
         }
         if self.add_attributes(attributes_data):
             print("Attributes added successfully.")
@@ -404,24 +400,24 @@ class DatabaseManager:
     def add_batch_attributes_example(self):
         batch_attributes_data = [
             {
-                "DeviceID": "device123",
-                "Timestamp": "2023-09-24 10:30:00",
-                "Status": "running",
-                "Speed": 60.0,
-                "Direction": 90.0,
-                "Longitude": 45.123456,
-                "Latitude": -78.987654,
-                "Extrainfo": {"info1": "value1", "info2": "value2"},
+                "device_id": "2222222222",
+                "timestamp": "2023-09-26 10:30:00",
+                "status": "running",
+                "speed": 60.0,
+                "direction": 90.0,
+                "longitude": 45.123456,
+                "latitude": -78.987654,
+                "extra_info": {"info1": "value1", "info2": "value2"},
             },
             {
-                "DeviceID": "device124",
-                "Timestamp": "2023-09-24 10:35:00",
-                "Status": "stopped",
-                "Speed": 0.0,
-                "Direction": 0.0,
-                "Longitude": 46.123456,
-                "Latitude": -79.987654,
-                "Extrainfo": {"info1": "value3", "info2": "value4"},
+                "device_id": "3333333333",
+                "timestamp": "2023-09-26 10:35:00",
+                "status": "stopped",
+                "speed": 0.0,
+                "direction": 0.0,
+                "longitude": 46.123456,
+                "latitude": -79.987654,
+                "extra_info": {"info1": "value3", "info2": "value4"},
             },
         ]
         if self.add_batch_attributes(batch_attributes_data):
@@ -431,9 +427,9 @@ class DatabaseManager:
 
     def get_attributes_example(self):
         filter_data = {
-            "DeviceID": "device123",
-            "Status": "running",
-            "Timestamp": ("2023-09-24 10:30:00", "2023-09-25 12:00:00"),
+            "device_id": "1111111111",
+            "status": "running",
+            "timestamp": ("2023-09-24 10:30:00", "2023-09-29 12:00:00"),
         }
         attributes = self.get_attributes(filter_data)
         if attributes:
@@ -466,13 +462,13 @@ if __name__ == "__main__":
     db_manager.add_device_example()
     db_manager.get_device_example()
     db_manager.update_device_example()
-    # db_manager.delete_device_example()
+    db_manager.delete_device_example()
 
     # # Register
-    # db_manager.create_register_table_example()
-    # db_manager.add_register_example()
-    # db_manager.get_register_example()
-    # db_manager.delete_register_example()
+    db_manager.create_register_table_example()
+    db_manager.add_register_example()
+    db_manager.get_register_example()
+    db_manager.delete_register_example()
 
     # Attributes
     db_manager.connect_to_database(current_db_name="track_and_trace")

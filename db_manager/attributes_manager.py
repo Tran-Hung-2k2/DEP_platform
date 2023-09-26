@@ -4,6 +4,7 @@ import json
 
 import pandas as pd
 
+
 class AttributesManager:
     def __init__(self, conn, cursor):
         self.conn = conn
@@ -11,16 +12,16 @@ class AttributesManager:
 
     def create_attributes_table(self):
         create_table_query = """
-        CREATE TABLE IF NOT EXISTS "Attributes" (
-            ID SERIAL PRIMARY KEY,
-            DeviceID CHAR(10),
-            Timestamp TIMESTAMP,
-            Status VARCHAR(255),
-            Speed FLOAT,
-            Direction FLOAT,
-            Longitude FLOAT,
-            Latitude FLOAT,
-            Extrainfo JSONB
+        CREATE TABLE IF NOT EXISTS "attributes" (
+            id SERIAL PRIMARY KEY,
+            device_id CHAR(10),
+            timestamp TIMESTAMP,
+            status VARCHAR(255),
+            speed FLOAT,
+            direction FLOAT,
+            longitude FLOAT,
+            latitude FLOAT,
+            extra_info JSONB
         )
         """
         try:
@@ -35,18 +36,18 @@ class AttributesManager:
         try:
             # Tạo tuple từ các giá trị
             data_tuple = (
-                attributes_data.get("DeviceID"),
-                attributes_data.get("Timestamp"),
-                attributes_data.get("Status"),
-                attributes_data.get("Speed"),
-                attributes_data.get("Direction"),
-                attributes_data.get("Longitude"),
-                attributes_data.get("Latitude"),
-                json.dumps(attributes_data.get("Extrainfo")),
+                attributes_data.get("device_id"),
+                attributes_data.get("timestamp"),
+                attributes_data.get("status"),
+                attributes_data.get("speed"),
+                attributes_data.get("direction"),
+                attributes_data.get("longitude"),
+                attributes_data.get("latitude"),
+                json.dumps(attributes_data.get("extra_info")),
             )
 
             insert_query = sql.SQL(
-                'INSERT INTO "Attributes" (DeviceID, Timestamp, Status, Speed, Direction, Longitude, Latitude, Extrainfo) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+                'INSERT INTO "attributes" (device_id, timestamp, status, speed, direction, longitude, latitude, extra_info) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
             )
             self.cursor.execute(insert_query, data_tuple)
             self.conn.commit()
@@ -62,20 +63,20 @@ class AttributesManager:
         try:
             # Tạo truy vấn INSERT hàng loạt
             insert_query = sql.SQL(
-                'INSERT INTO "Attributes" (DeviceID, Timestamp, Status, Speed, Direction, Longitude, Latitude, Extrainfo) VALUES {}'
+                'INSERT INTO "attributes" (device_id, timestamp, status, speed, direction, longitude, latitude, extra_info) VALUES {}'
             ).format(sql.SQL(",").join(sql.Placeholder() * len(batch_attributes_data)))
 
             # Biến đổi danh sách các dict thành danh sách các tuple
             records = [
                 (
-                    record.get("DeviceID"),
-                    record.get("Timestamp"),
-                    record.get("Status"),
-                    record.get("Speed"),
-                    record.get("Direction"),
-                    record.get("Longitude"),
-                    record.get("Latitude"),
-                    json.dumps(record.get("Extrainfo")),
+                    record.get("device_id"),
+                    record.get("timestamp"),
+                    record.get("status"),
+                    record.get("speed"),
+                    record.get("direction"),
+                    record.get("longitude"),
+                    record.get("latitude"),
+                    json.dumps(record.get("extra_info")),
                 )
                 for record in batch_attributes_data
             ]
@@ -91,7 +92,7 @@ class AttributesManager:
 
     def get_attributes_by_id(self, attribute_id):
         try:
-            select_query = sql.SQL('SELECT * FROM "Attributes" WHERE ID = %s')
+            select_query = sql.SQL('SELECT * FROM "attributes" WHERE id = %s')
             self.cursor.execute(select_query, (attribute_id,))
             attributes_row = self.cursor.fetchone()
 
@@ -119,7 +120,7 @@ class AttributesManager:
             for field, value in filter_data.items():
                 # Kiểm tra nếu trường là "Timestamp" và giá trị là một tuple (start, end)
                 if (
-                    field == "Timestamp"
+                    field == "timestamp"
                     and isinstance(value, tuple)
                     and len(value) == 2
                 ):
@@ -136,7 +137,7 @@ class AttributesManager:
                     )
                     values.append(value)
 
-            select_query = sql.SQL('SELECT * FROM "Attributes" WHERE {}').format(
+            select_query = sql.SQL('SELECT * FROM "attributes" WHERE {}').format(
                 sql.SQL(" AND ").join(conditions)
             )
 

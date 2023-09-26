@@ -10,10 +10,10 @@ class DeviceManager:
     def create_device_table(self):
         create_table_query = """
         CREATE TABLE IF NOT EXISTS "device" (
-            DeviceID CHAR(10) PRIMARY KEY,
-            UserID CHAR(10) REFERENCES "user" (UserID),
-            DeviceName VARCHAR(255),
-            PlateNo VARCHAR(20) UNIQUE
+            device_id CHAR(10) PRIMARY KEY,
+            user_id CHAR(10) REFERENCES "user" (user_id),
+            device_name VARCHAR(255),
+            plate_no VARCHAR(20) UNIQUE
         )
         """
         try:
@@ -29,14 +29,14 @@ class DeviceManager:
     def add_device(self, device_data):
         try:
             data_tuple = (
-                device_data.get("DeviceID"),
-                device_data.get("UserID"),
-                device_data.get("DeviceName"),
-                device_data.get("PlateNo"),
+                device_data.get("device_id"),
+                device_data.get("user_id"),
+                device_data.get("device_name"),
+                device_data.get("plate_no"),
             )
 
             insert_query = sql.SQL(
-                'INSERT INTO "device" (DeviceID, UserID, DeviceName, PlateNo) VALUES (%s, %s, %s, %s)'
+                'INSERT INTO "device" (device_id, user_id, device_name, plate_no) VALUES (%s, %s, %s, %s)'
             )
             self.cursor.execute(insert_query, data_tuple)
             self.conn.commit()
@@ -48,7 +48,7 @@ class DeviceManager:
 
     def get_device(self, device_id):
         try:
-            select_query = sql.SQL('SELECT * FROM "device" WHERE DeviceID = %s')
+            select_query = sql.SQL('SELECT * FROM "device" WHERE device_id = %s')
             self.cursor.execute(select_query, (device_id,))
             device_row = self.cursor.fetchone()
 
@@ -66,7 +66,7 @@ class DeviceManager:
 
     def get_device_by_user(self, user_id):
         try:
-            select_query = sql.SQL('SELECT * FROM "device" WHERE UserID = %s')
+            select_query = sql.SQL('SELECT * FROM "device" WHERE user_id = %s')
             self.cursor.execute(select_query, (user_id,))
             devices = self.cursor.fetchall()
 
@@ -87,7 +87,7 @@ class DeviceManager:
 
             # Xử lý từng cặp key-value trong new_data
             for key, value in new_data.items():
-                if key not in ["DeviceID"]:
+                if key not in ["device_id"]:
                     set_statements.append(f"{key} = %s")
                     update_values.append(value)
 
@@ -96,7 +96,7 @@ class DeviceManager:
 
             # Xây dựng câu truy vấn SQL
             update_query = (
-                f'UPDATE "device" SET {", ".join(set_statements)} WHERE DeviceID = %s'
+                f'UPDATE "device" SET {", ".join(set_statements)} WHERE device_id = %s'
             )
 
             # Thực hiện câu truy vấn cập nhật
@@ -110,7 +110,7 @@ class DeviceManager:
 
     def delete_device(self, device_id):
         try:
-            delete_query = sql.SQL('DELETE FROM "device" WHERE DeviceID = %s')
+            delete_query = sql.SQL('DELETE FROM "device" WHERE device_id = %s')
             self.cursor.execute(delete_query, (device_id,))
             self.conn.commit()
             return True

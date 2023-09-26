@@ -70,13 +70,14 @@ def generate_user_id(length=10):
 
 
 # API endpoint để lấy thông tin User dựa trên Username
-@router.get("/{Username}", response_model=User)
+@router.get("/{Username}")
 def get_entity(Username: str):
     entity = db_manager.get_user_by_username(Username)
     print(entity)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
-    entity["DateOfBirth"] = entity["DateOfBirth"].isoformat()
+    entity["dateofbirth"] = entity["dateofbirth"].isoformat()
+    entity["balance"] = float(entity["balance"])
     return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
 
 
