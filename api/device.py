@@ -21,10 +21,10 @@ db_manager.connect_to_database()
 
 # Mô hình Pydantic cho Device
 class Device(BaseModel):
-    DeviceID: str = Field(max_length=15)
-    Username: str = Field(max_length=15)
+    DeviceID: str = Field(max_length=10)
+    Username: str = Field(max_length=40)
     DeviceName: str = Field(max_length=255)
-    PlateNo: str = Field(max_length=15)
+    PlateNo: str = Field(max_length=20)
 
 
 def generate_device_id(length=15):

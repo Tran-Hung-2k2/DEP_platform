@@ -22,9 +22,9 @@ db_manager.connect_to_database()
 
 # Mô hình Pydantic cho Register
 class Register(BaseModel):
-    Token: str = Field(max_length=255)
+    Token: str = Field(max_length=15)
     Username: str = Field(max_length=10)
-    Problem: str = Field(max_length=255)
+    Problem: str = Field(max_length=50)
 
 
 # Secret key để mã hóa và giải mã token

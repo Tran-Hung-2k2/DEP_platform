@@ -26,26 +26,24 @@ db_manager.connect_to_database()
 
 # Mô hình Pydantic cho đăng nhập (login)
 class UserLogin(BaseModel):
-    Username: str = Field(max_length=255)
+    Username: str = Field(max_length=40)
     Password: str = Field(max_length=255)
 
 
 # Mô hình Pydantic cho tạo người dùng (signup)
 class UserSignup(UserLogin):
-    Username: str = Field(max_length=255)
-    Password: str = Field(max_length=255)
     Email: str = Field(max_length=255)
-    Gender: str
+    Gender: str = Field(max_length=10)
     Email: str = Field(max_length=255)
     DateOfBirth: str
-    PhoneNumber: str = Field(max_length=20)
+    PhoneNumber: str = Field(max_length=15)
 
 
 # Mô hình Pydantic cho User
 class User(UserSignup):
     UserID: str = Field(max_length=10)
     Balance: float
-    UserRole: str = Field(max_length=255)
+    UserRole: str = Field(max_length=50)
 
 
 # Cơ chế mã hóa mật khẩu
