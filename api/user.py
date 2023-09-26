@@ -13,13 +13,11 @@ import random
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from db_manager.db_manager import DatabaseManager
-from dependencies.db_manager import get_db_manager
 
 router = APIRouter(
     prefix="/v1/user",
     tags=["users"],
     responses={404: {"description": "Not found"}},
-    # dependencies=[Depends(get_db_manager)]
 )
 
 db_manager = DatabaseManager()
@@ -78,7 +76,7 @@ def get_user(Username: str):
     print(entity)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
-    entity["dateofbirth"] = entity["dateofbirth"].isoformat()
+    entity["date_of_birth"] = entity["date_of_birth"].isoformat()
     entity["balance"] = float(entity["balance"])
     return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
 
@@ -96,7 +94,9 @@ def update_user(Username: str, post: User):
 @router.delete("/{Username}")
 def delete_user(Username: str):
     if db_manager.delete_user(Username):
-        return JSONResponse(content={"message": "User deleted"}, status_code=status.HTTP_200_OK)
+        return JSONResponse(
+            content={"message": "User deleted"}, status_code=status.HTTP_200_OK
+        )
     else:
         raise HTTPException(status_code=404, detail="Error Deleting")
 
@@ -135,8 +135,10 @@ def login(post: UserLogin):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",
         )
-    return JSONResponse(content={"message": "Login successful"}, status_code=status.HTTP_200_OK)
-    
+    return JSONResponse(
+        content={"message": "Login successful"}, status_code=status.HTTP_200_OK
+    )
+
 
 if __name__ == "__main__":
     uvicorn.run(
