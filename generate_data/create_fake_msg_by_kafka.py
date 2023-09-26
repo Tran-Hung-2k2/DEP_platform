@@ -19,7 +19,7 @@ while True:
         "latitude": random.choice(["77.5666", "88.523123", "7852.24647", "96633.66"]),
         "extra_info": {"a": "b"},
         "device_id": "1111111111",
-        "problem": "track_and_trace"
+        "problem": "track_and_trace",
     }
 
     json_mes = json.dumps(obj_ms)

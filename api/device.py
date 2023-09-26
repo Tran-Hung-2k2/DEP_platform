@@ -18,13 +18,12 @@ router = APIRouter(
 
 # Mô hình Pydantic cho Device
 class Device(BaseModel):
-    device_id: str = Field(max_length=10)
     user_name: str = Field(max_length=40)
-    device_name: str = Field(max_length=255)
-    plate_no: str = Field(max_length=20)
+    device_name: Optional[str] = Field(max_length=255, default=None)
+    plate_no: Optional[str] = Field(max_length=20, default=None)
 
 
-def generate_device_id(length=15):
+def generate_device_id(length=10):
     characters = string.ascii_letters + string.digits
     seed = int(time.time() * 1000)
     random.seed(seed)
@@ -35,7 +34,7 @@ def generate_device_id(length=15):
 # API endpoint để tạo Device
 @router.post("/")
 def create_device(post: Device):
-    entity = db_manager.get_user(post.user_name)
+    entity = db_manager.get_user_by_username(post.user_name)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
     device_id = generate_device_id()
@@ -45,8 +44,10 @@ def create_device(post: Device):
         "device_name": post.device_name,
         "plate_no": post.plate_no,
     }
-    db_manager.add_device(device_data)
-    return JSONResponse(content=device_data, status_code=status.HTTP_200_OK)
+    if db_manager.add_device(device_data):
+        return JSONResponse(content=device_data, status_code=status.HTTP_200_OK)
+    else:
+        raise HTTPException(status_code=404, detail="Create failed")
 
 
 # API endpoint để lấy thông tin Device dựa trên DeviceID
@@ -58,10 +59,13 @@ def get_device_by_device_id(DeviceID: str):
     return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
 
 
-# API endpoint để cập nhật thông tin Device dựa trên UserID
-@router.get("/userid/{UserID}")
-def get_device_by_user_id(UserID: str):
-    entity = db_manager.get_device_by_user(UserID)
+# API endpoint để cập nhật thông tin Device dựa trên Username
+@router.get("/username/{Username}")
+def get_device_by_user_id(Username: str):
+    user_data = db_manager.get_user_by_username(Username)
+    if user_data is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    entity = db_manager.get_device_by_user(user_data["user_id"])
     if entity is None:
         raise HTTPException(status_code=404, detail="Device not found")
     return JSONResponse(content=entity, status_code=status.HTTP_200_OK)

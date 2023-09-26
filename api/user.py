@@ -1,10 +1,9 @@
-from fastapi import FastAPI, HTTPException, Depends, status, APIRouter
+from fastapi import FastAPI, HTTPException, status, APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import Optional
 from passlib.context import CryptContext
 import uvicorn
-from datetime import date
 import sys
 import os
 import string
@@ -32,10 +31,10 @@ class UserLogin(BaseModel):
 
 # Mô hình Pydantic cho tạo người dùng (signup)
 class UserSignup(UserLogin):
-    gender: str = Field(max_length=10)
-    email: str = Field(max_length=255)
-    date_of_birth: str
-    phone_number: str = Field(max_length=15)
+    gender: Optional[str] = Field(max_length=10, default=None)
+    email: Optional[str] = Field(max_length=255, default=None)
+    date_of_birth: Optional[str] = None
+    phone_number: Optional[str] = Field(max_length=15, default=None)
 
 
 # Mô hình Pydantic cho User
@@ -77,6 +76,7 @@ def get_user(Username: str):
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
     user_data["date_of_birth"] = user_data["date_of_birth"].isoformat()
+    user_data["balance"] = float(user_data["balance"])
     return JSONResponse(content=user_data, status_code=status.HTTP_200_OK)
 
 
@@ -87,7 +87,9 @@ def update_user(Username: str, user_data: User):
     if db_manager.update_user_by_username(Username, user_data):
         return JSONResponse(content=user_data, status_code=status.HTTP_200_OK)
     else:
-        raise HTTPException(status_code=404, detail="Error Updating")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Error Updating"
+        )
 
 
 # API endpoint để xóa User dựa trên Username
@@ -98,7 +100,9 @@ def delete_user(UserID: str):
             content={"message": "User deleted"}, status_code=status.HTTP_200_OK
         )
     else:
-        raise HTTPException(status_code=404, detail="UserID do not exist")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="UserID do not exist"
+        )
 
 
 # API endpoint để đăng ký người dùng
@@ -119,7 +123,9 @@ def signup(user_data: UserSignup):
     if db_manager.add_user(new_user_data):
         return JSONResponse(content=new_user_data, status_code=status.HTTP_200_OK)
     else:
-        raise HTTPException(status_code=403, detail="Fail to sign up")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Fail to sign up"
+        )
 
 
 # API endpoint để đăng nhập và kiểm tra thông tin đăng nhập
@@ -131,7 +137,7 @@ def login(user_data: UserLogin):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username not found",
         )
-    if not verify_password(user["password"], user_data.password):
+    if not verify_password(user_data.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",

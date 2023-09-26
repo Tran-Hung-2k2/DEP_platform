@@ -217,10 +217,11 @@ class DatabaseManager:
             consumer = client.topics[topic_name].get_balanced_consumer(
                 consumer_group=consumer_group_name,
                 auto_commit_enable=True,
-                auto_commit_interval_ms=2000,  # Thời gian tự động commit offset
+                auto_commit_interval_ms=1000,  # Thời gian tự động commit offset
                 zookeeper_connect="localhost:22181",  # Địa chỉ ZooKeeper
             )
             print("Consumer started")
+            count = 1
             count = 1
             # Bắt đầu lắng nghe các message từ topic
             for message in consumer:
