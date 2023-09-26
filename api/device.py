@@ -11,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from db_manager.db_manager import DatabaseManager
 
 router = APIRouter(
-    prefix="/device",
+    prefix="/v1/device",
     tags=["devices"],
     responses={404: {"description": "Not found"}},
 )
@@ -36,7 +36,7 @@ def generate_device_id(length=15):
 
 
 # API endpoint để tạo Device
-@router.post("/create", response_model=Device)
+@router.post("/", response_model=Device)
 def create_entity(post: Device):
     entity = db_manager.get_user(post.Username)
     if entity is None:
@@ -53,7 +53,7 @@ def create_entity(post: Device):
 
 
 # API endpoint để lấy thông tin Device dựa trên DeviceID
-@router.get("/get/{DeviceID}", response_model=Device)
+@router.get("/deviceid/{DeviceID}", response_model=Device)
 def get_entity(DeviceID: str):
     entity = db_manager.get_device(DeviceID)
     if entity is None:
@@ -62,7 +62,7 @@ def get_entity(DeviceID: str):
 
 
 # API endpoint để cập nhật thông tin Device dựa trên UserID
-@router.put("/gets/{UserID}", response_model=Device)
+@router.get("/userid/{UserID}", response_model=Device)
 def get_entity_many(UserID: str):
     entity = db_manager.get_device_by_user(UserID)
     if entity is None:
@@ -71,7 +71,7 @@ def get_entity_many(UserID: str):
 
 
 # API endpoint để xóa Device dựa trên DeviceID
-@router.delete("/delete/{DeviceID}")
+@router.delete("/{DeviceID}")
 def delete_entity(DeviceID: str):
     entity = db_manager.get_device(DeviceID)
     if entity is None:
