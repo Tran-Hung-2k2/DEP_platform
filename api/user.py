@@ -13,11 +13,13 @@ import random
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from db_manager.db_manager import DatabaseManager
+from dependencies.db_manager import get_db_manager
 
 router = APIRouter(
     prefix="/v1/user",
     tags=["users"],
     responses={404: {"description": "Not found"}},
+    # dependencies=[Depends(get_db_manager)]
 )
 
 db_manager = DatabaseManager()
@@ -71,7 +73,7 @@ def generate_user_id(length=10):
 
 # API endpoint để lấy thông tin User dựa trên Username
 @router.get("/{Username}", response_model=User)
-def get_entity(Username: str):
+def get_user(Username: str):
     entity = db_manager.get_user_by_username(Username)
     print(entity)
     if entity is None:
@@ -82,18 +84,18 @@ def get_entity(Username: str):
 
 # API endpoint để cập nhật thông tin User dựa trên Username
 @router.put("/{Username}", response_model=User)
-def update_entity(Username: str, post: User):
+def update_user(Username: str, post: User):
     if db_manager.update_user_by_username(Username, post):
-        return post
+        return JSONResponse(content=post, status_code=status.HTTP_200_OK)
     else:
         raise HTTPException(status_code=404, detail="Error Updating")
 
 
 # API endpoint để xóa User dựa trên Username
 @router.delete("/{Username}")
-def delete_entity(Username: str):
+def delete_user(Username: str):
     if db_manager.delete_user(Username):
-        return {"message": "User deleted"}
+        return JSONResponse(content={"message": "User deleted"}, status_code=status.HTTP_200_OK)
     else:
         raise HTTPException(status_code=404, detail="Error Deleting")
 
@@ -132,8 +134,8 @@ def login(post: UserLogin):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",
         )
-    return {"message": "Login successful"}
-
+    return JSONResponse(content={"message": "Login successful"}, status_code=status.HTTP_200_OK)
+    
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi import FastAPI, HTTPException, APIRouter, status
+from fastapi.responses import JSONResponse
+
 from pydantic import BaseModel, Field
 from typing import List
 import jwt
@@ -49,7 +51,7 @@ def decode_token(token: str):
 
 # API endpoint để tạo Register và tạo token cho người dùng
 @router.post("/", response_model=Register)
-def create_entity(post: Register):
+def create_register(post: Register):
     entity = db_manager.get_user(post.Username)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -57,23 +59,24 @@ def create_entity(post: Register):
     token = create_token(register_data)
     register_data["Token"] = token
     db_manager.add_register(register_data)
-    return register_data
+    return JSONResponse(content=register_data, status_code=status.HTTP_200_OK)
+
 
 
 # API endpoint để lấy thông tin Register dựa trên UserID
 @router.get("/{Username}", response_model=Register)
-def get_entity(Username: str):
+def get_register(Username: str):
     user_data = db_manager.get_user(Username)
     if user_data is None:
         raise HTTPException(status_code=404, detail="Register not found")
     register_data = db_manager.get_register_by_user_id(user_data.UserID)
-    return register_data
+    return JSONResponse(content=register_data, status_code=status.HTTP_200_OK)
 
 
 # API endpoint để xóa Register dựa trên UserID
 @router.delete("/{Token}")
-def delete_entity(Token: str, query: str):
+def delete_register(Token: str, query: str):
     if not db_manager.get_register_by_user_id(query):
         raise HTTPException(status_code=404, detail="Register not found")
     db_manager.delete_register(Token)
-    return {"message": "Register deleted"}
+    return JSONResponse(content={"message": "Register deleted"}, status_code=status.HTTP_200_OK)
