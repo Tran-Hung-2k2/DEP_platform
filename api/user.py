@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, status, APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from typing import Optional
 from passlib.context import CryptContext
 import uvicorn
 import sys
@@ -30,10 +31,10 @@ class UserLogin(BaseModel):
 
 # Mô hình Pydantic cho tạo người dùng (signup)
 class UserSignup(UserLogin):
-    gender: str = Field(max_length=10)
-    email: str = Field(max_length=255)
-    date_of_birth: str
-    phone_number: str = Field(max_length=15)
+    gender: Optional[str] = Field(max_length=10, default=None)
+    email: Optional[str] = Field(max_length=255, default=None)
+    date_of_birth: Optional[str] = None
+    phone_number: Optional[str] = Field(max_length=15, default=None)
 
 
 # Mô hình Pydantic cho User
@@ -136,7 +137,7 @@ def login(user_data: UserLogin):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username not found",
         )
-    if not verify_password(user["password"], user_data.password):
+    if not verify_password(user_data.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",

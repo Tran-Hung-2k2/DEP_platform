@@ -217,11 +217,11 @@ class DatabaseManager:
             consumer = client.topics[topic_name].get_balanced_consumer(
                 consumer_group=consumer_group_name,
                 auto_commit_enable=True,
-                auto_commit_interval_ms=1000,  # Thời gian tự động commit offset
+                auto_commit_interval_ms=5,  # Thời gian tự động commit offset
                 zookeeper_connect="localhost:22181",  # Địa chỉ ZooKeeper
             )
             print("Consumer started")
-
+            count = 1
             # Bắt đầu lắng nghe các message từ topic
             for message in consumer:
                 if message is not None:
@@ -231,7 +231,10 @@ class DatabaseManager:
 
                         # Gọi hàm xử lý dữ liệu
                         if ref.data_preprocess(data):
-                            print(self.add_attributes(data))
+                            if self.add_attributes(data):
+                                print(f"Save data {count}")
+                                count += 1
+
                         else:
                             print("Data pre-processing failed")
                     except Exception as e:
@@ -485,7 +488,7 @@ if __name__ == "__main__":
     # db_track_and_trace.get_attributes_example()
 
     # kafka
-    # db_track_and_trace.data_consume(db_manager, "localhost", "29092", "alo")
+    db_track_and_trace.data_consume(db_manager, "localhost", "29092", "alo")
     # Kết thúc kết nối
     db_manager.close_connection()
     db_track_and_trace.close_connection()

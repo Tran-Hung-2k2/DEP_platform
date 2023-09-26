@@ -9,7 +9,7 @@ client = KafkaClient(hosts="localhost:29092")
 topic = client.topics[topic_name.encode()]
 
 producer = topic.get_producer()
-
+count = 1
 while True:
     obj_ms = {
         "status": random.choice(["stop", "run", "offline", "online"]),
@@ -19,10 +19,11 @@ while True:
         "latitude": random.choice(["77.5666", "88.523123", "7852.24647", "96633.66"]),
         "extra_info": {"a": "b"},
         "device_id": "1111111111",
-        "problem": "track_and_trace"
+        "problem": "track_and_trace",
     }
 
     json_mes = json.dumps(obj_ms)
     producer.produce(json_mes.encode("utf-8"))
-    print("Đã gửi")
-    time.sleep(3)  # Tạm dừng 3 giây trước khi gửi bản tin tiếp theo
+    print(f"Đã gửi {count}")
+    count += 1
+    time.sleep(0.1)
