@@ -15,7 +15,7 @@ class AttributesManager:
         CREATE TABLE IF NOT EXISTS "attributes" (
             id SERIAL PRIMARY KEY,
             device_id CHAR(10),
-            timestamp TIMESTAMP,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             status VARCHAR(255),
             speed FLOAT,
             direction FLOAT,
