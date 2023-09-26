@@ -12,9 +12,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from db_manager.db_manager import DatabaseManager
 
 app = FastAPI()
-app.include_router(device.router)
-app.include_router(register.router)
 app.include_router(user.router)
+app.include_router(register.router)
+app.include_router(device.router)
 
 db_manager = DatabaseManager()
 db_manager.connect_to_database()

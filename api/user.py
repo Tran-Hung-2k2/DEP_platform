@@ -85,6 +85,7 @@ def generate_user_id(length=10):
 @router.get("/{Username}", response_model=User)
 def get_entity(Username: str):
     entity = db_manager.get_user_by_username(Username)
+    print(entity)
     if entity is None:
         raise HTTPException(status_code=404, detail="User not found")
     return entity
