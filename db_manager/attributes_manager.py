@@ -59,22 +59,6 @@ class AttributesManager:
         if batch_attributes_data is None:
             batch_attributes_data = []
         try:
-            """
-            batch_attributes_data = [
-                {
-                    "DeviceID": "device123",
-                    "Timestamp": "2023-09-24 10:30:00",
-                    "Status": "running",
-                    "Speed": 60.0,
-                    "Direction": 90.0,
-                    "Longitude": 45.123456,
-                    "Latitude": -78.987654,
-                    "Extrainfo": {"info1": "value1", "info2": "value2"},
-                },
-                ...
-            ]
-            """
-
             # Tạo truy vấn INSERT hàng loạt
             insert_query = sql.SQL(
                 'INSERT INTO "Attributes" (DeviceID, Timestamp, Status, Speed, Direction, Longitude, Latitude, Extrainfo) VALUES {}'
@@ -108,9 +92,12 @@ class AttributesManager:
         try:
             select_query = sql.SQL('SELECT * FROM "Attributes" WHERE ID = %s')
             self.cursor.execute(select_query, (attribute_id,))
-            attributes = self.cursor.fetchone()
-            if attributes:
-                return attributes
+            attributes_row = self.cursor.fetchone()
+
+            if attributes_row:
+                columns = [desc[0] for desc in self.cursor.description]
+                attributes_dict = dict(zip(columns, attributes_row))
+                return attributes_dict
             else:
                 print("Attributes not found.")
                 return None
@@ -139,13 +126,13 @@ class AttributesManager:
                     conditions.append(
                         sql.SQL("{} BETWEEN %s AND %s").format(
                             sql.Identifier(field.lower())
-                        )  # Chuyển tên cột thành chữ thường ở đây
+                        )
                     )
                     values.extend([start, end])
                 else:
                     conditions.append(
                         sql.SQL("{} = %s").format(sql.Identifier(field.lower()))
-                    )  # Chuyển tên cột thành chữ thường ở đây
+                    )
                     values.append(value)
 
             select_query = sql.SQL('SELECT * FROM "Attributes" WHERE {}').format(
@@ -153,10 +140,17 @@ class AttributesManager:
             )
 
             self.cursor.execute(select_query, values)
-            attributes = self.cursor.fetchall()
+            attributes_rows = self.cursor.fetchall()
 
-            if attributes:
-                return attributes
+            attributes_list = []
+            columns = [desc[0] for desc in self.cursor.description]
+
+            for attributes_row in attributes_rows:
+                attributes_dict = dict(zip(columns, attributes_row))
+                attributes_list.append(attributes_dict)
+
+            if attributes_list:
+                return attributes_list
             else:
                 print("Attributes not found.")
                 return None

@@ -11,7 +11,6 @@ from register_manager import RegisterManager
 from device_manager import DeviceManager
 from attributes_manager import AttributesManager
 from pykafka import KafkaClient
-from pykafka.simpleconsumer import OffsetType
 from configs.config import config
 
 db_name = config["USER_DB_NAME"]
@@ -208,7 +207,7 @@ class DatabaseManager:
 
     def data_consume(self, host, port, topic):
         # Khởi tạo Kafka Client
-        client = KafkaClient(hosts=f'{host}:{port}')
+        client = KafkaClient(hosts=f"{host}:{port}")
         # Xác định Consumer Group và topic
         consumer_group_name = "my_consumer_group"
         topic_name = topic
@@ -224,20 +223,20 @@ class DatabaseManager:
         # Bắt đầu lắng nghe các message từ topic
         for message in consumer:
             if message is not None:
-                data = json.loads(message.value.decode('utf-8'))
+                data = json.loads(message.value.decode("utf-8"))
                 if self.data_preprocess(data):
                     self.add_attributes(data)
                 else:
                     print("Falied Data")
-                
+
         # Đóng kết nối sau khi hoàn thành
         consumer.stop()
 
     def data_preprocess(self, data):
-        if data.get("Problem") == "TrackAndTrace" :
+        if data.get("Problem") == "TrackAndTrace":
             device_id = data.get("DeviceID")
             print(device_id)
-            return self.get_device(device_id) != None 
+            return self.get_device(device_id) != None
 
     def create_user_table_example(self):
         # Tạo bảng "user" nếu nó chưa tồn tại

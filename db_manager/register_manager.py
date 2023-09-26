@@ -44,19 +44,22 @@ class RegisterManager:
             print(f"Error adding register: {e}")
             self.conn.rollback()
             return False
-        
+
     def get_register(self, token):
         try:
             select_query = sql.SQL('SELECT * FROM "register" WHERE Token = %s')
             self.cursor.execute(select_query, (token,))
-            register = self.cursor.fetchone()
-            if register:
-                return register
+            register_row = self.cursor.fetchone()
+
+            if register_row:
+                columns = [desc[0] for desc in self.cursor.description]
+                register_dict = dict(zip(columns, register_row))
+                return register_dict
             else:
                 print("Register not found for the specified Token.")
                 return None
         except psycopg2.Error as e:
-            print(f"Error getting register by UserID: {e}")
+            print(f"Error getting register by Token: {e}")
             self.conn.rollback()
             return None
 
@@ -64,14 +67,18 @@ class RegisterManager:
         try:
             select_query = sql.SQL('SELECT * FROM "register" WHERE UserID = %s')
             self.cursor.execute(select_query, (user_id,))
-            register = self.cursor.fetchone()
-            if register:
-                return register
-            else:
-                print("Register not found for the specified UserID.")
-                return None
+            register_rows = self.cursor.fetchall()
+
+            register_list = []
+            columns = [desc[0] for desc in self.cursor.description]
+
+            for register_row in register_rows:
+                register_dict = dict(zip(columns, register_row))
+                register_list.append(register_dict)
+
+            return register_list
         except psycopg2.Error as e:
-            print(f"Error getting register by UserID: {e}")
+            print(f"Error getting registers by UserID: {e}")
             self.conn.rollback()
             return None
 
