@@ -3,13 +3,13 @@ from pykafka import KafkaClient
 import time
 import random
 
-topic_name = "alo"
+topic_name = "track_and_trace"
 
 client = KafkaClient(hosts="localhost:29092")
 topic = client.topics[topic_name.encode()]
 
 producer = topic.get_producer()
-
+count=1
 while True:
     obj_ms = {
         "status": random.choice(["stop", "run", "offline", "online"]),
@@ -24,5 +24,6 @@ while True:
 
     json_mes = json.dumps(obj_ms)
     producer.produce(json_mes.encode("utf-8"))
-    print("Đã gửi")
-    time.sleep(3)  # Tạm dừng 3 giây trước khi gửi bản tin tiếp theo
+    print(f"Đã gửi {count}")
+    count += 1
+    time.sleep(0.5)  
