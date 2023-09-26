@@ -3,8 +3,7 @@ import random
 import string
 
 
-server_url = "http://localhost:8000/user_service/device/create"
-
+server_url = "http://localhost:8000/v1/device/"
 user_number=20
 # Gửi 1 batch lớn
 

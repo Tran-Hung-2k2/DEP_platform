@@ -3,11 +3,11 @@ import random
 import string
 
 # Define the URL of your Django server where you want to send the requests
-server_url = "http://localhost:8000/user_service/register/create"
+server_url = "http://localhost:8000/v1/register/"
 
 # Gửi 1 batch lớn
 
-services = ['TrackAndTrace', 'SmartHome', 'SmartFarm', 'PowerSaving', 'CMP']
+services = ['track_and_trace', 'smarthome', 'smartfarm', 'power_saving', 'cpm']
 register_number=20
 def generate_random_register_data():
     username = random.choices(["Hung","Minh","Duong"])
