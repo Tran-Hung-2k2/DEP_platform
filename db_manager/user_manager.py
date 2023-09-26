@@ -125,8 +125,13 @@ class UserManager:
         try:
             delete_query = sql.SQL('DELETE FROM "user" WHERE user_id = %s')
             self.cursor.execute(delete_query, (user_id,))
-            self.conn.commit()
-            return True
+            deleted_count = self.cursor.rowcount  # Số lượng bản ghi đã bị xóa
+
+            if deleted_count > 0:
+                self.conn.commit()  # Commit nếu có bản ghi bị xóa
+                return True
+            else:
+                return False
         except psycopg2.Error as e:
             print(f"Error deleting user: {e}")
             self.conn.rollback()

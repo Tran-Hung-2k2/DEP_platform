@@ -18,10 +18,10 @@ router = APIRouter(
 
 # Mô hình Pydantic cho Device
 class Device(BaseModel):
-    DeviceID: str = Field(max_length=10)
-    Username: str = Field(max_length=40)
-    DeviceName: str = Field(max_length=255)
-    PlateNo: str = Field(max_length=20)
+    device_id: str = Field(max_length=10)
+    user_name: str = Field(max_length=40)
+    device_name: str = Field(max_length=255)
+    plate_no: str = Field(max_length=20)
 
 
 def generate_device_id(length=15):

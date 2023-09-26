@@ -19,9 +19,9 @@ router = APIRouter(
 
 # Mô hình Pydantic cho Register
 class Register(BaseModel):
-    Token: str = Field(max_length=15)
-    Username: str = Field(max_length=10)
-    Problem: str = Field(max_length=50)
+    token: str = Field(max_length=15)
+    user_name: str = Field(max_length=10)
+    problem: str = Field(max_length=50)
 
 
 # Secret key để mã hóa và giải mã token

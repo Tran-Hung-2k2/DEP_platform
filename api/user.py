@@ -26,24 +26,23 @@ db_manager.connect_to_database()
 
 # Mô hình Pydantic cho đăng nhập (login)
 class UserLogin(BaseModel):
-    Username: str = Field(max_length=40)
-    Password: str = Field(max_length=255)
+    user_name: str = Field(max_length=40)
+    password: str = Field(max_length=255)
 
 
 # Mô hình Pydantic cho tạo người dùng (signup)
 class UserSignup(UserLogin):
-    Email: str = Field(max_length=255)
-    Gender: str = Field(max_length=10)
-    Email: str = Field(max_length=255)
-    DateOfBirth: str
-    PhoneNumber: str = Field(max_length=15)
+    gender: str = Field(max_length=10)
+    email: str = Field(max_length=255)
+    date_of_birth: str
+    phone_number: str = Field(max_length=15)
 
 
 # Mô hình Pydantic cho User
 class User(UserSignup):
-    UserID: str = Field(max_length=10)
-    Balance: float
-    UserRole: str = Field(max_length=50)
+    user_id: str = Field(max_length=10)
+    balance: float
+    role: str = Field(max_length=50)
 
 
 # Cơ chế mã hóa mật khẩu
@@ -72,65 +71,67 @@ def generate_user_id(length=10):
 # API endpoint để lấy thông tin User dựa trên Username
 @router.get("/{Username}")
 def get_user(Username: str):
-    entity = db_manager.get_user_by_username(Username)
-    print(entity)
-    if entity is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    entity["date_of_birth"] = entity["date_of_birth"].isoformat()
-    entity["balance"] = float(entity["balance"])
-    return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
+    user_data = db_manager.get_user_by_username(Username)
+    if user_data is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    user_data["date_of_birth"] = user_data["date_of_birth"].isoformat()
+    return JSONResponse(content=user_data, status_code=status.HTTP_200_OK)
 
 
 # API endpoint để cập nhật thông tin User dựa trên Username
 @router.put("/{Username}")
-def update_user(Username: str, post: User):
-    if db_manager.update_user_by_username(Username, post):
-        return JSONResponse(content=post, status_code=status.HTTP_200_OK)
+def update_user(Username: str, user_data: User):
+    user_data = user_data.dict()
+    if db_manager.update_user_by_username(Username, user_data):
+        return JSONResponse(content=user_data, status_code=status.HTTP_200_OK)
     else:
         raise HTTPException(status_code=404, detail="Error Updating")
 
 
 # API endpoint để xóa User dựa trên Username
-@router.delete("/{Username}")
-def delete_user(Username: str):
-    if db_manager.delete_user(Username):
+@router.delete("/{UserID}")
+def delete_user(UserID: str):
+    if db_manager.delete_user(UserID):
         return JSONResponse(
             content={"message": "User deleted"}, status_code=status.HTTP_200_OK
         )
     else:
-        raise HTTPException(status_code=404, detail="Error Deleting")
+        raise HTTPException(status_code=404, detail="UserID do not exist")
 
 
 # API endpoint để đăng ký người dùng
 @router.post("/")
-def signup(post: UserSignup):
-    if db_manager.get_user_by_username(post.Username) is not None:
+def signup(user_data: UserSignup):
+    if db_manager.get_user_by_username(user_data.user_name) is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already registered",
         )
-    hashed_password = hash_password(post.Password)
-    post.Password = hashed_password
+    hashed_password = hash_password(user_data.password)
+    user_data.password = hashed_password
     new_user_data_id = generate_user_id()
-    new_user_data = post.dict()
+    new_user_data = user_data.dict()
     new_user_data.update(
-        {"UserID": f"{new_user_data_id}", "Balance": 0.0, "UserRole": "user"}
+        {"user_id": f"{new_user_data_id}", "balance": 0.0, "role": "user"}
     )
-    db_manager.add_user(new_user_data)
-    new_user_data["DateOfBirth"] = new_user_data["DateOfBirth"].isoformat()
-    return JSONResponse(content=new_user_data, status_code=status.HTTP_200_OK)
+    if db_manager.add_user(new_user_data):
+        return JSONResponse(content=new_user_data, status_code=status.HTTP_200_OK)
+    else:
+        raise HTTPException(status_code=403, detail="Fail to sign up")
 
 
 # API endpoint để đăng nhập và kiểm tra thông tin đăng nhập
 @router.post("/login")
-def login(post: UserLogin):
-    user_data = db_manager.get_user(post.Username)
-    if user_data is None:
+def login(user_data: UserLogin):
+    user = db_manager.get_user_by_username(user_data.user_name)
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username not found",
         )
-    if not verify_password(post.Password, user_data.Password):
+    if not verify_password(user["password"], user_data.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",
