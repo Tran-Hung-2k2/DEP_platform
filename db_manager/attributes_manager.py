@@ -1,5 +1,7 @@
 import psycopg2
 from psycopg2 import sql
+import json
+
 import pandas as pd
 
 class AttributesManager:
@@ -11,13 +13,13 @@ class AttributesManager:
         create_table_query = """
         CREATE TABLE IF NOT EXISTS "Attributes" (
             ID SERIAL PRIMARY KEY,
-            DeviceID CHAR(10), kiem tra da co deviceID
-            Timestamp TIMESTAMP,not null (tu ren)
-            Status VARCHAR(255), not null
-            Speed FLOAT, not null
+            DeviceID CHAR(10),
+            Timestamp TIMESTAMP,
+            Status VARCHAR(255),
+            Speed FLOAT,
             Direction FLOAT,
-            Longitude FLOAT, not null
-            Latitude FLOAT, not null
+            Longitude FLOAT,
+            Latitude FLOAT,
             Extrainfo JSONB
         )
         """
@@ -40,7 +42,7 @@ class AttributesManager:
                 attributes_data.get("Direction"),
                 attributes_data.get("Longitude"),
                 attributes_data.get("Latitude"),
-                attributes_data.get("Extrainfo"),
+                json.dumps(attributes_data.get("Extrainfo")),
             )
 
             insert_query = sql.SQL(
@@ -89,7 +91,7 @@ class AttributesManager:
                     record.get("Direction"),
                     record.get("Longitude"),
                     record.get("Latitude"),
-                    record.get("Extrainfo"),
+                    json.dumps(record.get("Extrainfo")),
                 )
                 for record in batch_attributes_data
             ]
@@ -97,6 +99,7 @@ class AttributesManager:
             self.cursor.execute(insert_query, records)
             self.conn.commit()
             print("Batch insert successful.")
+            return True
         except psycopg2.Error as e:
             print(f"Error performing batch insert: {e}")
             self.conn.rollback()
@@ -135,11 +138,11 @@ class AttributesManager:
                 ):
                     start, end = value
                     conditions.append(
-                        sql.SQL("{} BETWEEN %s AND %s").format(sql.Identifier(field))
+                        sql.SQL("{} BETWEEN %s AND %s").format(sql.Identifier(field.lower()))  # Chuyển tên cột thành chữ thường ở đây
                     )
                     values.extend([start, end])
                 else:
-                    conditions.append(sql.SQL("{} = %s").format(sql.Identifier(field)))
+                    conditions.append(sql.SQL("{} = %s").format(sql.Identifier(field.lower())))  # Chuyển tên cột thành chữ thường ở đây
                     values.append(value)
 
             select_query = sql.SQL('SELECT * FROM "Attributes" WHERE {}').format(
@@ -158,3 +161,4 @@ class AttributesManager:
             print(f"Error getting attributes: {e}")
             self.conn.rollback()
             return None
+
