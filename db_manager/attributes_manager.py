@@ -12,17 +12,18 @@ class AttributesManager:
 
     def create_attributes_table(self):
         create_table_query = """
-        CREATE TABLE IF NOT EXISTS "attributes" (
+        CREATE TABLE attributes (
             id SERIAL PRIMARY KEY,
             device_id CHAR(10),
-            timestamp TIMESTAMP,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             status VARCHAR(255),
             speed FLOAT,
             direction FLOAT,
             longitude FLOAT,
             latitude FLOAT,
             extra_info JSONB
-        )
+        );
+
         """
         try:
             self.cursor.execute(create_table_query)
@@ -37,7 +38,6 @@ class AttributesManager:
             # Tạo tuple từ các giá trị
             data_tuple = (
                 attributes_data.get("device_id"),
-                attributes_data.get("timestamp"),
                 attributes_data.get("status"),
                 attributes_data.get("speed"),
                 attributes_data.get("direction"),
@@ -47,7 +47,7 @@ class AttributesManager:
             )
 
             insert_query = sql.SQL(
-                'INSERT INTO "attributes" (device_id, timestamp, status, speed, direction, longitude, latitude, extra_info) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+                'INSERT INTO "attributes" (device_id, status, speed, direction, longitude, latitude, extra_info) VALUES (%s, %s, %s, %s, %s, %s, %s)'
             )
             self.cursor.execute(insert_query, data_tuple)
             self.conn.commit()
@@ -63,14 +63,13 @@ class AttributesManager:
         try:
             # Tạo truy vấn INSERT hàng loạt
             insert_query = sql.SQL(
-                'INSERT INTO "attributes" (device_id, timestamp, status, speed, direction, longitude, latitude, extra_info) VALUES {}'
+                'INSERT INTO "attributes" (device_id, status, speed, direction, longitude, latitude, extra_info) VALUES {}'
             ).format(sql.SQL(",").join(sql.Placeholder() * len(batch_attributes_data)))
 
             # Biến đổi danh sách các dict thành danh sách các tuple
             records = [
                 (
                     record.get("device_id"),
-                    record.get("timestamp"),
                     record.get("status"),
                     record.get("speed"),
                     record.get("direction"),
