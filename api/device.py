@@ -7,25 +7,21 @@ import os
 import string
 import random
 import time
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from db_manager.db_manager import DatabaseManager
+from user import db_manager
 
 router = APIRouter(
     prefix="/v1/device",
     tags=["devices"],
     responses={404: {"description": "Not found"}},
 )
-db_manager = DatabaseManager()
-db_manager.connect_to_database()
 
 
 # Mô hình Pydantic cho Device
 class Device(BaseModel):
-    DeviceID: str = Field(max_length=10)
-    Username: str = Field(max_length=40)
-    DeviceName: str = Field(max_length=255)
-    PlateNo: str = Field(max_length=20)
+    device_id: str = Field(max_length=10)
+    user_name: str = Field(max_length=40)
+    device_name: str = Field(max_length=255)
+    plate_no: str = Field(max_length=20)
 
 
 def generate_device_id(length=15):
@@ -53,7 +49,6 @@ def create_device(post: Device):
     return JSONResponse(content=device_data, status_code=status.HTTP_200_OK)
 
 
-
 # API endpoint để lấy thông tin Device dựa trên DeviceID
 @router.get("/deviceid/{DeviceID}")
 def get_device_by_device_id(DeviceID: str):
@@ -61,7 +56,6 @@ def get_device_by_device_id(DeviceID: str):
     if entity is None:
         raise HTTPException(status_code=404, detail="Device not found")
     return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
-    
 
 
 # API endpoint để cập nhật thông tin Device dựa trên UserID
@@ -71,7 +65,6 @@ def get_device_by_user_id(UserID: str):
     if entity is None:
         raise HTTPException(status_code=404, detail="Device not found")
     return JSONResponse(content=entity, status_code=status.HTTP_200_OK)
-    
 
 
 # API endpoint để xóa Device dựa trên DeviceID
@@ -81,5 +74,6 @@ def delete_device(DeviceID: str):
     if entity is None:
         raise HTTPException(status_code=404, detail="Device not found")
     db_manager.delete_device(DeviceID)
-    return JSONResponse(content={"message": "Device deleted"}, status_code=status.HTTP_200_OK)
-
+    return JSONResponse(
+        content={"message": "Device deleted"}, status_code=status.HTTP_200_OK
+    )

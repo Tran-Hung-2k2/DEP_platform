@@ -7,9 +7,7 @@ import jwt
 import sys
 import os
 from jwt import PyJWTError
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from db_manager.db_manager import DatabaseManager
+from user import db_manager
 
 
 router = APIRouter(
@@ -18,15 +16,12 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-db_manager = DatabaseManager()
-db_manager.connect_to_database()
-
 
 # Mô hình Pydantic cho Register
 class Register(BaseModel):
-    Token: str = Field(max_length=15)
-    Username: str = Field(max_length=10)
-    Problem: str = Field(max_length=50)
+    token: str = Field(max_length=15)
+    user_name: str = Field(max_length=10)
+    problem: str = Field(max_length=50)
 
 
 # Secret key để mã hóa và giải mã token
@@ -48,7 +43,6 @@ def decode_token(token: str):
         return None
 
 
-
 # API endpoint để tạo Register và tạo token cho người dùng
 @router.post("/")
 def create_register(post: Register):
@@ -60,7 +54,6 @@ def create_register(post: Register):
     register_data["Token"] = token
     db_manager.add_register(register_data)
     return JSONResponse(content=register_data, status_code=status.HTTP_200_OK)
-
 
 
 # API endpoint để lấy thông tin Register dựa trên UserID
@@ -79,4 +72,6 @@ def delete_register(Token: str, query: str):
     if not db_manager.get_register_by_user_id(query):
         raise HTTPException(status_code=404, detail="Register not found")
     db_manager.delete_register(Token)
-    return JSONResponse(content={"message": "Register deleted"}, status_code=status.HTTP_200_OK)
+    return JSONResponse(
+        content={"message": "Register deleted"}, status_code=status.HTTP_200_OK
+    )
