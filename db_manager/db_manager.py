@@ -205,38 +205,44 @@ class DatabaseManager:
     def get_attributes_by_id(self, attribute_id):
         return self.attributes_manager.get_attributes_by_id(attribute_id)
 
-    def data_consume(self, host, port, topic):
-        self.connect_to_database("track_and_trace")
-        # Khởi tạo Kafka Client
-        client = KafkaClient(hosts=f"{host}:{port}")
-        # Xác định Consumer Group và topic
-        consumer_group_name = "my_consumer_group"
-        topic_name = topic
+    def data_consume(self, ref, host, port, topic):
+        try:
+            # Khởi tạo Kafka Client
+            client = KafkaClient(hosts=f"{host}:{port}")
+            # Xác định Consumer Group và topic
+            consumer_group_name = "test_consumer_group"
+            topic_name = topic
 
-        # Tạo Kafka Consumer
-        consumer = client.topics[topic_name].get_balanced_consumer(
-            consumer_group=consumer_group_name,
-            auto_commit_enable=True,
-            auto_commit_interval_ms=1000,  # Thời gian tự động commit offset
-            zookeeper_connect="localhost:22181",  # Địa chỉ ZooKeeper
-        )
+            # Tạo Kafka Consumer
+            consumer = client.topics[topic_name].get_balanced_consumer(
+                consumer_group=consumer_group_name,
+                auto_commit_enable=True,
+                auto_commit_interval_ms=1000,  # Thời gian tự động commit offset
+                zookeeper_connect="localhost:22181",  # Địa chỉ ZooKeeper
+            )
+            print("Consumer started")
 
-        # Bắt đầu lắng nghe các message từ topic
-        for message in consumer:
-            if message is not None:
-                data = json.loads(message.value.decode("utf-8"))
-                if self.data_preprocess(data):
-                    self.add_attributes(data)
-                else:
-                    print("Falied Data")
+            # Bắt đầu lắng nghe các message từ topic
+            for message in consumer:
+                if message is not None:
+                    try:
+                        # Xử lý thông điệp JSON từ Kafka
+                        data = json.loads(message.value.decode("utf-8"))
 
-        # Đóng kết nối sau khi hoàn thành
-        consumer.stop()
+                        # Gọi hàm xử lý dữ liệu
+                        if ref.data_preprocess(data):
+                            print(self.add_attributes(data))
+                        else:
+                            print("Data processing failed")
+                    except Exception as e:
+                        print(f"Error processing message: {str(e)}")
+
+        except Exception as e:
+            print(f"Error in Kafka Consumer: {str(e)}")
 
     def data_preprocess(self, data):
         if data.get("problem") == "track_and_trace":
             device_id = data.get("device_id")
-            print(device_id)
             return self.get_device(device_id) != None
 
     def create_user_table_example(self):
@@ -449,7 +455,8 @@ class DatabaseManager:
 if __name__ == "__main__":
     db_manager = DatabaseManager()
     db_manager.connect_to_database(current_db_name="user_db")
-
+    db_track_and_trace = DatabaseManager()
+    db_track_and_trace.connect_to_database(current_db_name="track_and_trace")
     # Gọi các ví dụ tương ứng cho các hàm
     # User
     db_manager.create_user_table_example()
@@ -464,19 +471,21 @@ if __name__ == "__main__":
     db_manager.update_device_example()
     db_manager.delete_device_example()
 
-    # # Register
+    # Register
     db_manager.create_register_table_example()
     db_manager.add_register_example()
     db_manager.get_register_example()
     db_manager.delete_register_example()
 
     # Attributes
-    db_manager.connect_to_database(current_db_name="track_and_trace")
-    db_manager.create_attributes_table_example()
-    db_manager.add_attributes_example()
-    db_manager.add_batch_attributes_example()
-    db_manager.get_attributes_by_id_example()
-    db_manager.get_attributes_example()
+    db_track_and_trace.create_attributes_table_example()
+    db_track_and_trace.add_attributes_example()
+    db_track_and_trace.add_batch_attributes_example()
+    db_track_and_trace.get_attributes_by_id_example()
+    db_track_and_trace.get_attributes_example()
 
+    # kafka
+    db_track_and_trace.data_consume(db_manager, "localhost", "29092", "alo")
     # Kết thúc kết nối
     db_manager.close_connection()
+    db_track_and_trace.close_connection()
