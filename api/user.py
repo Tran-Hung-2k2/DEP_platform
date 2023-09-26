@@ -72,7 +72,7 @@ def generate_user_id(length=10):
 
 
 # API endpoint để lấy thông tin User dựa trên Username
-@router.get("/{Username}", response_model=User)
+@router.get("/{Username}")
 def get_user(Username: str):
     entity = db_manager.get_user_by_username(Username)
     print(entity)
@@ -84,7 +84,7 @@ def get_user(Username: str):
 
 
 # API endpoint để cập nhật thông tin User dựa trên Username
-@router.put("/{Username}", response_model=User)
+@router.put("/{Username}")
 def update_user(Username: str, post: User):
     if db_manager.update_user_by_username(Username, post):
         return JSONResponse(content=post, status_code=status.HTTP_200_OK)
@@ -102,7 +102,7 @@ def delete_user(Username: str):
 
 
 # API endpoint để đăng ký người dùng
-@router.post("/", response_model=User)
+@router.post("/")
 def signup(post: UserSignup):
     if db_manager.get_user_by_username(post.Username) is not None:
         raise HTTPException(

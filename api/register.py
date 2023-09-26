@@ -50,7 +50,7 @@ def decode_token(token: str):
 
 
 # API endpoint để tạo Register và tạo token cho người dùng
-@router.post("/", response_model=Register)
+@router.post("/")
 def create_register(post: Register):
     entity = db_manager.get_user(post.Username)
     if entity is None:
@@ -64,7 +64,7 @@ def create_register(post: Register):
 
 
 # API endpoint để lấy thông tin Register dựa trên UserID
-@router.get("/{Username}", response_model=Register)
+@router.get("/{Username}")
 def get_register(Username: str):
     user_data = db_manager.get_user(Username)
     if user_data is None:
