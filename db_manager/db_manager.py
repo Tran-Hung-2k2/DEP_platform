@@ -2,16 +2,16 @@
 import psycopg2
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+import json
+
 sys.path.append(os.path.join(os.path.dirname(__file__), "."))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from user_manager import UserManager
 from register_manager import RegisterManager
 from device_manager import DeviceManager
 from attributes_manager import AttributesManager
 from pykafka import KafkaClient
 from pykafka.simpleconsumer import OffsetType
-
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from configs.config import config
 
 db_name = config["USER_DB_NAME"]
@@ -199,12 +199,16 @@ class DatabaseManager:
         return self.attributes_manager.add_batch_attributes(batch_attributes_data)
 
     @require_track_and_trace_connection
+    def get_attributes(self, attribute_id):
+        return self.attributes_manager.get_attributes(attribute_id)
+
+    @require_track_and_trace_connection
     def get_attributes_by_id(self, attribute_id):
         return self.attributes_manager.get_attributes_by_id(attribute_id)
 
     def data_consume(self, host, port, topic):
         # Khởi tạo Kafka Client
-        client = KafkaClient(hosts=r'{host}:{port}')
+        client = KafkaClient(hosts=r"{host}:{port}")
 
         # Xác định Consumer Group và topic
         consumer_group_name = "my_consumer_group"
@@ -215,22 +219,22 @@ class DatabaseManager:
             consumer_group=consumer_group_name,
             auto_commit_enable=True,
             auto_commit_interval_ms=1000,  # Thời gian tự động commit offset
-            zookeeper_connect="localhost:22181"  # Địa chỉ ZooKeeper
+            zookeeper_connect="localhost:22181",  # Địa chỉ ZooKeeper
         )
 
         # Bắt đầu lắng nghe các message từ topic
         for message in consumer:
             if message is not None:
-                data = json.loads(message.value.decode('utf-8'))
+                data = json.loads(message.value.decode("utf-8"))
                 # self.data_preprocess(data)
 
         # Đóng kết nối sau khi hoàn thành
         consumer.stop()
 
-
     def data_preprocess(self, data):
-        if data.get("Problem") == "TrackAndTrace" :
+        if data.get("Problem") == "TrackAndTrace":
             pass
+
     def create_user_table_example(self):
         # Tạo bảng "user" nếu nó chưa tồn tại
         if self.create_user_table():
@@ -374,6 +378,73 @@ class DatabaseManager:
         else:
             print("Error deleting user.")
 
+    def create_attributes_table_example(self):
+        self.create_attributes_table()
+
+    def add_attributes_example(self):
+        attributes_data = {
+            "DeviceID": "device123",
+            "Timestamp": "2023-09-24 10:30:00",
+            "Status": "running",
+            "Speed": 60.0,
+            "Direction": 90.0,
+            "Longitude": 45.123456,
+            "Latitude": -78.987654,
+            "Extrainfo": {"info1": "value1", "info2": "value2"},
+        }
+        if self.add_attributes(attributes_data):
+            print("Attributes added successfully.")
+        else:
+            print("Error adding attributes.")
+
+    def add_batch_attributes_example(self):
+        batch_attributes_data = [
+            {
+                "DeviceID": "device123",
+                "Timestamp": "2023-09-24 10:30:00",
+                "Status": "running",
+                "Speed": 60.0,
+                "Direction": 90.0,
+                "Longitude": 45.123456,
+                "Latitude": -78.987654,
+                "Extrainfo": {"info1": "value1", "info2": "value2"},
+            },
+            {
+                "DeviceID": "device124",
+                "Timestamp": "2023-09-24 10:35:00",
+                "Status": "stopped",
+                "Speed": 0.0,
+                "Direction": 0.0,
+                "Longitude": 46.123456,
+                "Latitude": -79.987654,
+                "Extrainfo": {"info1": "value3", "info2": "value4"},
+            },
+        ]
+        if self.add_batch_attributes(batch_attributes_data):
+            print("Batch attributes added successfully.")
+        else:
+            print("Error performing batch insert.")
+
+    def get_attributes_example(self):
+        filter_data = {
+            "DeviceID": "device123",
+            "Status": "running",
+            "Timestamp": ("2023-09-24 10:30:00", "2023-09-25 12:00:00"),
+        }
+        attributes = self.get_attributes(filter_data)
+        if attributes:
+            print("Attributes found:", attributes)
+        else:
+            print("Attributes not found.")
+
+    def get_attributes_by_id_example(self):
+        attribute_id = 1
+        attributes = self.get_attributes_by_id(attribute_id)
+        if attributes:
+            print("Attributes found:", attributes)
+        else:
+            print("Attributes not found.")
+
 
 if __name__ == "__main__":
     db_manager = DatabaseManager()
@@ -401,6 +472,14 @@ if __name__ == "__main__":
 
     # Delete user
     db_manager.delete_user_example()
+
+    # Attributes
+    db_manager.connect_to_database(current_db_name="track_and_trace")
+    db_manager.create_attributes_table_example()
+    db_manager.add_attributes_example()
+    db_manager.add_batch_attributes_example()
+    db_manager.get_attributes_by_id_example()
+    db_manager.get_attributes_example()
 
     # Kết thúc kết nối
     db_manager.close_connection()
