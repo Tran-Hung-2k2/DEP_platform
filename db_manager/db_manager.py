@@ -7,6 +7,8 @@ from user_manager import UserManager
 from register_manager import RegisterManager
 from device_manager import DeviceManager
 from attributes_manager import AttributesManager
+from pykafka import KafkaClient
+from pykafka.simpleconsumer import OffsetType
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from configs.config import config
@@ -226,12 +228,35 @@ class DatabaseManage:
             print("Not connected to track_and_trace database.")
             return False
 
-    def data_consume(self, params):
-        pass
+    def data_consume(self, host, port, topic):
+        # Khởi tạo Kafka Client
+        client = KafkaClient(hosts=r'{host}:{port}')
 
-    def data_preprocess(self, params):
-        pass
+        # Xác định Consumer Group và topic
+        consumer_group_name = "my_consumer_group"
+        topic_name = topic
 
+        # Tạo Kafka Consumer
+        consumer = client.topics[topic_name].get_balanced_consumer(
+            consumer_group=consumer_group_name,
+            auto_commit_enable=True,
+            auto_commit_interval_ms=1000,  # Thời gian tự động commit offset
+            zookeeper_connect="localhost:22181"  # Địa chỉ ZooKeeper
+        )
+
+        # Bắt đầu lắng nghe các message từ topic
+        for message in consumer:
+            if message is not None:
+                data = json.loads(message.value.decode('utf-8'))
+                # self.data_preprocess(data)
+
+        # Đóng kết nối sau khi hoàn thành
+        consumer.stop()
+
+
+    def data_preprocess(self, data):
+        if data.get("Problem") == "TrackAndTrace" :
+            pass
 
 if __name__ == "__main__":
     db_manager = DatabaseManage()
