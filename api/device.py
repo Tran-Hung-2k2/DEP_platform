@@ -33,7 +33,7 @@ def generate_device_id(length=15):
 
 
 # API endpoint để tạo Device
-@router.post("/", response_model=Device)
+@router.post("/")
 def create_device(post: Device):
     entity = db_manager.get_user(post.Username)
     if entity is None:
@@ -50,7 +50,7 @@ def create_device(post: Device):
 
 
 # API endpoint để lấy thông tin Device dựa trên DeviceID
-@router.get("/deviceid/{DeviceID}", response_model=Device)
+@router.get("/deviceid/{DeviceID}")
 def get_device_by_device_id(DeviceID: str):
     entity = db_manager.get_device(DeviceID)
     if entity is None:
@@ -59,7 +59,7 @@ def get_device_by_device_id(DeviceID: str):
 
 
 # API endpoint để cập nhật thông tin Device dựa trên UserID
-@router.get("/userid/{UserID}", response_model=Device)
+@router.get("/userid/{UserID}")
 def get_device_by_user_id(UserID: str):
     entity = db_manager.get_device_by_user(UserID)
     if entity is None:
