@@ -30,6 +30,7 @@ class Preprocessing():
             port=db_port,
         )
         self.current_db = None
+        self.df = None
 
     def configurations(self):
         pass
@@ -128,9 +129,6 @@ class Preprocessing():
             self.conn.rollback()
             return None
 
-
-    def delete_something(self, params):
-        pass
 
 
 if __name__ == '__main__':

@@ -11,10 +11,8 @@ services = ['track_and_trace', 'smarthome', 'smartfarm', 'power_saving', 'cpm']
 register_number=20
 def generate_random_register_data():
     username = random.choices(["Hung","Minh","Duong"])
-    token = ''.join(random.choices(string.ascii_letters + string.digits, k=15))
     service = random.choice(services)  # Randomly select a service from the list
     register_data = {
-        "token": token,
         "user_name": username,
         "service": service,
     }

@@ -21,7 +21,6 @@ def generate_random_user_data():
         "gender": gender,
         "date_of_birth": date_of_birth,
         "phone_number": phone_number,
-        "balance": balance,
     }
     return user_data
 
