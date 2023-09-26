@@ -207,6 +207,7 @@ class DatabaseManager:
         return self.attributes_manager.get_attributes_by_id(attribute_id)
 
     def data_consume(self, host, port, topic):
+        self.connect_to_database("track_and_trace")
         # Khởi tạo Kafka Client
         client = KafkaClient(hosts=f'{host}:{port}')
         # Xác định Consumer Group và topic
