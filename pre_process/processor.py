@@ -1,7 +1,5 @@
 
 import psycopg2
-from psycopg2 import sql
-import json
 import os
 import sys
 import pandas as pd
@@ -65,15 +63,13 @@ class Preprocessing():
             self.conn.close()
             print("Connection closed")
 
-
-    def get_all_data(self):
+    def fetch_all(self):
         sql_query = f"SELECT * FROM {self.current_db}"
-        df = pd.read_sql_query(sql_query, self.conn)
-        if df.empty:
-            print("No data matched")
-            return False
-        else:
-            return df        
+        self.df = pd.read_sql_query(sql_query, self.conn)
+        if self.df.empty:
+            print("No data found")
+            return False             
+        
 
     def get_data_by_user_id(self, user_id):
         sql_query = f"SELECT * FROM {self.current_db} WHERE user_id ={user_id}"
